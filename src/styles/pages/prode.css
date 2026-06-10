@@ -1,0 +1,88 @@
+.prode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 18px;
+}
+
+.prode-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  padding: 24px;
+}
+
+.prode-card__header,
+.prode-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.prode-card__header {
+  color: var(--color-muted);
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.prode-card__teams {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: center;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 900;
+  margin-bottom: 22px;
+}
+
+.prode-card__teams span:nth-child(2) {
+  color: var(--color-secondary);
+  font-size: 13px;
+}
+
+.prode-card__prediction {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.prode-card__prediction input {
+  width: 76px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.prode-result {
+  text-align: center;
+  color: var(--color-muted);
+  margin-bottom: 18px;
+}
+
+.status-badge {
+  border-radius: 999px;
+  padding: 7px 11px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.status-badge--open {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+.status-badge--locked {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+}
+
+.status-badge--finished {
+  background: #eeeaf6;
+  color: var(--color-secondary);
+}

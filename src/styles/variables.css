@@ -1,0 +1,55 @@
+/* 
+--------------------------- Colores triunfo --------------
+--Principal: 007a53
+Secundario: 514078
+Tercero: #F5F5DB (Color crema)
+Fondo: #FFFFFF (Blanco)
+
+Fuentes
+
+Principal: Gotham, Montserrat, Arial, sans-serif
+Secundaria: Noto Serif, Georgia, serif (Si existe)
+*/
+
+:root {
+  --color-primary: #007a53;
+  --color-primary-dark: #005f41;
+
+  --color-secondary: #514078;
+  --color-secondary-dark: #3f315f;
+  --color-white: #ffffff; 
+  --color-background: #ffffff;
+  --color-surface: #ffffff;
+  --color-text: #202020;
+  --color-muted: #6f6f6f;
+  --color-border: rgba(32, 32, 32, 0.12);
+
+  --color-success-bg: #e7f6ef;
+  --color-success-text: #007a53;
+
+  --color-warning-bg: #fff5d6;
+  --color-warning-text: #8a6400;
+
+  --color-danger-bg: #fde8e8;
+  --color-danger-text: #9b1c1c;
+
+  --font-primary: "Gotham", "Montserrat", Arial, sans-serif;
+  --font-serif: "Noto Serif", Georgia, serif;
+
+  --sidebar-width: 260px;
+  --header-height: 86px;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 24px;
+  --radius-xl: 34px;
+
+  --shadow-sm: 0 6px 18px rgba(32, 32, 32, 0.08);
+  --shadow-md: 0 14px 40px rgba(32, 32, 32, 0.12);
+
+  --transition-fast: 0.2s ease;
+
+  --color-red: rgb(255, 42, 0);
+  --color-yellow: rgb(255, 255, 0);
+  --color-green: rgb(116, 220, 116);
+}

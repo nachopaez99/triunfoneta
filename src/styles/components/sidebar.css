@@ -8,8 +8,8 @@
     var(--color-secondary)
   ); */
  background-image: url('../../assets/fondo.jpg');
-  background-size: cover;
-  background-repeat: no-repeat;
+  background-size: 100%;
+  background-repeat: 2;
   /* background-opacity: 0.2; */
   color: var(--color-white);
   padding: 28px 20px;

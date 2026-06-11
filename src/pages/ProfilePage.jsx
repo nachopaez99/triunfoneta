@@ -4,10 +4,11 @@ import { useAuth } from "../context/AuthContext";
 import { PersonalStickerCard } from "../components/sticker/PersonalStickerCard";
 import {
   createMySticker,
+  getBackendFileUrl,
   getMySticker,
   uploadMyStickerPhoto,
-  getBackendFileUrl,
 } from "../services/userService";
+import { changePassword } from "../services/authService";
 
 export function ProfilePage() {
   const { user, logout } = useAuth();
@@ -19,13 +20,19 @@ export function ProfilePage() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
   useEffect(() => {
     async function loadSticker() {
       if (!user) return;
 
       try {
         const sticker = await getMySticker();
-console.log("Sticker cargado desde backend:", sticker);
+
         setMySticker(sticker);
         setPreviewImage(getBackendFileUrl(sticker.photoUrl) || user.avatarUrl || "");
         setPhrase(sticker.funFact || "");
@@ -52,24 +59,17 @@ console.log("Sticker cargado desde backend:", sticker);
   const areaName = user.area?.name || "Sin área";
 
   function handleImageChange(event) {
-  const file = event.target.files[0];
+    const file = event.target.files[0];
 
-  if (!file) return;
+    if (!file) return;
 
-  if (previewImage?.startsWith("blob:")) {
-    URL.revokeObjectURL(previewImage);
-  }
-
-  setSelectedFile(file);
-  setPreviewImage(URL.createObjectURL(file));
-}
-useEffect(() => {
-  return () => {
     if (previewImage?.startsWith("blob:")) {
       URL.revokeObjectURL(previewImage);
     }
-  };
-}, [previewImage]);
+
+    setSelectedFile(file);
+    setPreviewImage(URL.createObjectURL(file));
+  }
 
   async function handleSubmitSticker() {
     if (!selectedFile && !mySticker) {
@@ -105,6 +105,46 @@ useEffect(() => {
       alert(error.message || "No se pudo guardar la figurita.");
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function handleChangePassword(event) {
+    event.preventDefault();
+
+    if (!currentPassword || !newPassword || !repeatPassword) {
+      alert("Completá todos los campos.");
+      return;
+    }
+
+    if (newPassword !== repeatPassword) {
+      alert("Las contraseñas nuevas no coinciden.");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      alert("La nueva contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
+
+    setIsChangingPassword(true);
+
+    try {
+      await changePassword({
+        currentPassword,
+        newPassword,
+      });
+
+      alert("Contraseña actualizada correctamente.");
+
+      setCurrentPassword("");
+      setNewPassword("");
+      setRepeatPassword("");
+      setIsPasswordModalOpen(false);
+    } catch (error) {
+      console.error("Error cambiando contraseña:", error);
+      alert(error.message || "No se pudo cambiar la contraseña.");
+    } finally {
+      setIsChangingPassword(false);
     }
   }
 
@@ -161,6 +201,14 @@ useEffect(() => {
           >
             {isSaving ? "Guardando..." : "Guardar figurita"}
           </button>
+
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={() => setIsPasswordModalOpen(true)}
+          >
+            Cambiar contraseña
+          </button>
         </form>
 
         <aside className="personal-sticker-preview">
@@ -182,6 +230,67 @@ useEffect(() => {
           Salir
         </button>
       </div>
+
+      {isPasswordModalOpen && (
+        <div
+          className="password-modal-backdrop"
+          onClick={() => setIsPasswordModalOpen(false)}
+        >
+          <form
+            className="password-modal"
+            onSubmit={handleChangePassword}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              className="password-modal__close"
+              type="button"
+              onClick={() => setIsPasswordModalOpen(false)}
+            >
+              ×
+            </button>
+
+            <h3>Cambiar contraseña</h3>
+
+            <div className="form-group">
+              <label>Contraseña actual</label>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(event) => setCurrentPassword(event.target.value)}
+                autoComplete="current-password"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Nueva contraseña</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                autoComplete="new-password"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Repetir nueva contraseña</label>
+              <input
+                type="password"
+                value={repeatPassword}
+                onChange={(event) => setRepeatPassword(event.target.value)}
+                autoComplete="new-password"
+              />
+            </div>
+
+            <button
+              className="primary-button"
+              type="submit"
+              disabled={isChangingPassword}
+            >
+              {isChangingPassword ? "Guardando..." : "Guardar contraseña"}
+            </button>
+          </form>
+        </div>
+      )}
     </section>
   );
 }

@@ -1,9 +1,15 @@
+import { getBackendFileUrl } from "../../services/userService";
+
 export function PersonalStickerCard({ sticker, fallbackName }) {
+  const imageUrl = getBackendFileUrl(
+    sticker?.photoUrl || sticker?.imageUrl || sticker?.avatarUrl
+  );
+
   return (
     <div className="personal-sticker-card">
       <div className="personal-sticker-image">
-        {sticker?.photoUrl ? (
-          <img src={sticker.photoUrl} alt={sticker.nickname || fallbackName} />
+        {imageUrl ? (
+          <img src={imageUrl} alt={sticker?.nickname || fallbackName} />
         ) : (
           "?"
         )}

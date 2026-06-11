@@ -3,6 +3,14 @@ import { PersonalStickerCard } from "./PersonalStickerCard";
 export function StickerPreviewModal({ sticker, onClose }) {
   if (!sticker) return null;
 
+  const normalizedSticker = {
+    ...sticker,
+    photoUrl: sticker.photoUrl || sticker.imageUrl || sticker.avatarUrl || "",
+    nickname: sticker.nickname || sticker.employeeName || "Figurita",
+    area: sticker.area || sticker.department || "Sin área",
+    position: sticker.position || "Figurita",
+  };
+
   return (
     <div className="sticker-modal-backdrop" onClick={onClose}>
       <div
@@ -18,8 +26,8 @@ export function StickerPreviewModal({ sticker, onClose }) {
         </button>
 
         <PersonalStickerCard
-          sticker={sticker}
-          fallbackName={sticker.nickname || sticker.employeeName || "Figurita"}
+          sticker={normalizedSticker}
+          fallbackName={normalizedSticker.nickname}
         />
       </div>
     </div>

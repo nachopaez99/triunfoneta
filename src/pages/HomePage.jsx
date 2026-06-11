@@ -8,22 +8,7 @@ import sobre from "../assets/sobre.png";
 export function HomePage() {
   const [isPackModalOpen, setIsPackModalOpen] = useState(false);
 
-/* prueba backend
 
-
-  async function testBackendConnection() {
-  localStorage.setItem(
-  "accessToken",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiYWRtaW5AdHJpdW5mby5jb20iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3ODA3NzA0OTQsImV4cCI6MTc4MTM3NTI5NH0._EdFXxgYBkaRcy1zy06Q2DOQFWZpqDkm1KQd0gJx5dI"
-);try {
-    const user = await getCurrentUser();
-    console.log("Usuario backend:", user);
-    
-  } catch (error) {
-    console.error("Error conectando backend:", error);
-  }
-}
- */
 const semaforo = {
   red: 33,
   yellow: 66,
@@ -125,14 +110,21 @@ function getProgressColor() {
           <p>Incluye {stickersPerPack} figuritas</p>
           <strong>{packCost} pts</strong>
 
-          <button
+          {/* <button
               className="primary-button"
               type="button"
               onClick={handleOpenPack}
               disabled={isOpeningPack}
             >
               {isOpeningPack ? "Abriendo..." : "Comprar sobre"}
-          </button>
+          </button> */}
+          <button
+  className="primary-button"
+  disabled
+  title="Funcionalidad temporalmente deshabilitada"
+>
+  Comprar sobre (próximamente)
+</button>
           
         </div>
         {/* <button

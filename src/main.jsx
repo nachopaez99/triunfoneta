@@ -22,6 +22,7 @@ import "./styles/pages/prode.css";
 import "./styles/pages/exchange.css";
 import "./styles/pages/profile.css";
 import "./styles/pages/login.css";
+import "./styles/pages/info.css";
 
 
 ReactDOM.createRoot(document.getElementById("root")).render(

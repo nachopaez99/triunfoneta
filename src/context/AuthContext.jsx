@@ -36,7 +36,7 @@ export function AuthProvider({ children }) {
     loadSession();
   }, [token]);
 
-  
+
 async function refreshUser() {
   const backendUser = await getCurrentUser();
   setUser(backendUser);
@@ -62,6 +62,11 @@ async function refreshUser() {
   } */
   function logout() {
   localStorage.removeItem("accessToken");
+  localStorage.removeItem("user");
+  localStorage.removeItem("albumData");
+  localStorage.removeItem("lastOpenedPack");
+  localStorage.removeItem("gameConfig");
+
   setToken(null);
   setUser(null);
 }

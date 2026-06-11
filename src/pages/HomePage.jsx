@@ -41,6 +41,7 @@ const {
   stickersPerPack,
   lastOpenedPack,
   openPack,
+  isOpeningPack,
 } = useAlbum();
 
  async function handleOpenPack() {
@@ -125,11 +126,12 @@ function getProgressColor() {
           <strong>{packCost} pts</strong>
 
           <button
-            className="primary-button"
-            type="button"
-            onClick={handleOpenPack}
-          >
-            Comprar sobre
+              className="primary-button"
+              type="button"
+              onClick={handleOpenPack}
+              disabled={isOpeningPack}
+            >
+              {isOpeningPack ? "Abriendo..." : "Comprar sobre"}
           </button>
           
         </div>

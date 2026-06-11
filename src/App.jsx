@@ -2,6 +2,7 @@ import { BrowserRouter } from "react-router-dom";
 import { AppRouter } from "./routes/AppRouter";
 import { AlbumProvider } from "./context/AlbumContext";
 import { AuthProvider } from "./context/AuthContext";
+/* import { InfoPage } from "./pages/InfoPage"; */
 
 function App() {
   return (

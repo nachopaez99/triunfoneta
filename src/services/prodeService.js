@@ -13,4 +13,4 @@ export function createProdePick(matchId, payload) {
 
 export function getMyProdePicks() {
   return apiRequest("/prode/picks/me");
-}s
+}

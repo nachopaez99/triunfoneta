@@ -1,0 +1,42 @@
+.how-to-play-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.how-to-play-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+}
+
+.how-to-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 122, 83, 0.12);
+}
+
+.how-to-card span {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: #007a53;
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  margin-bottom: 14px;
+}
+
+.how-to-card h3 {
+  margin: 0 0 8px;
+  color: #15372c;
+}
+
+.how-to-card p {
+  margin: 0;
+  color: #66736f;
+  line-height: 1.5;
+}

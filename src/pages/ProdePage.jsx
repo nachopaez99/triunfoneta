@@ -14,6 +14,8 @@ export function ProdePage() {
   const [savingMatchId, setSavingMatchId] = useState(null);
   const [error, setError] = useState("");
 
+
+
   async function loadProde() {
     setLoading(true);
     setError("");
@@ -38,15 +40,16 @@ export function ProdePage() {
           return {
             ...match,
             prediction: {
-              homeScore:
-                existingPick?.homeScore ??
-                existingPick?.predictedHomeScore ??
-                "",
-              awayScore:
-                existingPick?.awayScore ??
-                existingPick?.predictedAwayScore ??
-                "",
-            },
+  homeScore:
+    existingPick?.predictedHome ??
+    existingPick?.homeScore ??
+    "",
+  awayScore:
+    existingPick?.predictedAway ??
+    existingPick?.awayScore ??
+    "",
+},
+hasPick: Boolean(existingPick),
           };
         })
       );
@@ -83,6 +86,7 @@ export function ProdePage() {
   async function handleSavePrediction(matchId) {
     const match = matches.find((item) => item.id === matchId);
 
+
     if (!match) return;
 
     const homeScore = Number(match.prediction.homeScore);
@@ -97,9 +101,9 @@ export function ProdePage() {
 
     try {
       await createProdePick(matchId, {
-        predictedHomeScore: homeScore,
-        predictedAwayScore: awayScore,
-      });
+  predictedHome: homeScore,
+  predictedAway: awayScore,
+});
 
       await loadProde();
 

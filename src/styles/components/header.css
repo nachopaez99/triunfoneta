@@ -61,3 +61,12 @@
     padding: 18px;
   }
 }
+
+.avatar {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.avatar:hover {
+  transform: scale(1.08);
+}

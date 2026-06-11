@@ -1,66 +1,124 @@
-import { useState } from "react";
-import { useAlbum } from "../context/AlbumContext";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PersonalStickerCard } from "../components/sticker/PersonalStickerCard";
 import { useAuth } from "../context/AuthContext";
+import { PersonalStickerCard } from "../components/sticker/PersonalStickerCard";
+import {
+  createMySticker,
+  getMySticker,
+  uploadMyStickerPhoto,
+  getBackendFileUrl,
+} from "../services/userService";
 
 export function ProfilePage() {
-  const { user, setUser } = useAlbum();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { logout } = useAuth();
 
-  const [previewImage, setPreviewImage] = useState(
-    user.personalSticker.photoUrl
-  );
-  const [phrase, setPhrase] = useState(user.personalSticker.phrase || "");
+  const [mySticker, setMySticker] = useState(null);
+  const [previewImage, setPreviewImage] = useState("");
+  const [phrase, setPhrase] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const isLocked = user.personalSticker.status !== "pending";
+  useEffect(() => {
+    async function loadSticker() {
+      if (!user) return;
 
-/* function handleLogout() {
-  logout();
-  navigate("/login", { replace: true });
-} */
+      try {
+        const sticker = await getMySticker();
+console.log("Sticker cargado desde backend:", sticker);
+        setMySticker(sticker);
+        setPreviewImage(getBackendFileUrl(sticker.photoUrl) || user.avatarUrl || "");
+        setPhrase(sticker.funFact || "");
+      } catch (error) {
+        console.error("Error cargando figurita:", error);
+        setMySticker(null);
+        setPreviewImage(user.avatarUrl || "");
+        setPhrase("");
+      }
+    }
 
+    loadSticker();
+  }, [user]);
 
-  function handleImageChange(event) {
-    const file = event.target.files[0];
-
-    if (!file) return;
-
-    const imageUrl = URL.createObjectURL(file);
-    setPreviewImage(imageUrl);
+  if (!user) {
+    return (
+      <section className="profile-page">
+        <p>Cargando perfil...</p>
+      </section>
+    );
   }
 
-  function handleSubmitSticker() {
-    if (!previewImage) {
+  const fullName = user.fullName || "Usuario";
+  const areaName = user.area?.name || "Sin área";
+
+  function handleImageChange(event) {
+  const file = event.target.files[0];
+
+  if (!file) return;
+
+  if (previewImage?.startsWith("blob:")) {
+    URL.revokeObjectURL(previewImage);
+  }
+
+  setSelectedFile(file);
+  setPreviewImage(URL.createObjectURL(file));
+}
+useEffect(() => {
+  return () => {
+    if (previewImage?.startsWith("blob:")) {
+      URL.revokeObjectURL(previewImage);
+    }
+  };
+}, [previewImage]);
+
+  async function handleSubmitSticker() {
+    if (!selectedFile && !mySticker) {
       alert("Debés cargar una foto para crear tu figurita.");
       return;
     }
 
-    setUser((currentUser) => ({
-      ...currentUser,
-      personalSticker: {
-        ...currentUser.personalSticker,
-        photoUrl: previewImage,
-        phrase,
-        status: "review",
-      },
-    }));
+    setIsSaving(true);
+
+    try {
+      if (!mySticker) {
+        await createMySticker({
+          nickname: fullName.slice(0, 30),
+          funFact: phrase || "",
+          useAvatar: false,
+        });
+      }
+
+      if (selectedFile) {
+        await uploadMyStickerPhoto(selectedFile);
+      }
+
+      const updatedSticker = await getMySticker();
+
+      setMySticker(updatedSticker);
+      setPreviewImage(getBackendFileUrl(updatedSticker.photoUrl) || user.avatarUrl || "");
+      setPhrase(updatedSticker.funFact || phrase);
+      setSelectedFile(null);
+
+      alert("Figurita guardada correctamente.");
+    } catch (error) {
+      console.error("Error guardando figurita:", error);
+      alert(error.message || "No se pudo guardar la figurita.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
-
-function handleLogout() {
-  logout();
-  /* console.log(localStorage.getItem("accessToken")); */
-  navigate("/login", { replace: true });
-}
+  function handleLogout() {
+    logout();
+    navigate("/login", { replace: true });
+  }
 
   return (
     <section className="profile-page">
       <header className="page-header">
         <div>
           <h2>Mi perfil</h2>
-          <p>Completá tus datos y creá tu figurita personal.</p>
+          <p>Completá tus datos y actualizá tu figurita personal.</p>
         </div>
       </header>
 
@@ -68,28 +126,22 @@ function handleLogout() {
         <form className="profile-form">
           <div className="form-group">
             <label>Nombre</label>
-            <input value={user.firstName} disabled />
+            <input value={fullName} disabled />
           </div>
 
           <div className="form-group">
-            <label>Apellido</label>
-            <input value={user.lastName} disabled />
+            <label>Email</label>
+            <input value={user.email || ""} disabled />
           </div>
 
           <div className="form-group">
             <label>Área</label>
-            <input value={user.department} disabled />
-          </div>
-
-          <div className="form-group">
-            <label>Puesto</label>
-            <input value={user.position} disabled />
+            <input value={areaName} disabled />
           </div>
 
           <div className="form-group">
             <label>Frase para tu figurita</label>
             <textarea
-              disabled={isLocked}
               value={phrase}
               onChange={(event) => setPhrase(event.target.value)}
               placeholder="Escribí una frase breve"
@@ -98,66 +150,35 @@ function handleLogout() {
 
           <div className="form-group">
             <label>Foto de figurita</label>
-            <input
-              type="file"
-              accept="image/*"
-              disabled={isLocked}
-              onChange={handleImageChange}
-            />
+            <input type="file" accept="image/*" onChange={handleImageChange} />
           </div>
 
-          {user.personalSticker.status === "pending" && (
-            <button
-              className="primary-button"
-              type="button"
-              onClick={handleSubmitSticker}
-            >
-              Enviar figurita para aprobación
-            </button>
-          )}
-
-          {user.personalSticker.status === "review" && (
-            <p className="profile-status profile-status--review">
-              Tu figurita está pendiente de aprobación.
-            </p>
-          )}
-
-          {user.personalSticker.status === "approved" && (
-            <p className="profile-status profile-status--approved">
-              Tu figurita ya fue aprobada y no puede modificarse.
-            </p>
-          )}
+          <button
+            className="primary-button"
+            type="button"
+            onClick={handleSubmitSticker}
+            disabled={isSaving}
+          >
+            {isSaving ? "Guardando..." : "Guardar figurita"}
+          </button>
         </form>
 
         <aside className="personal-sticker-preview">
           <span>Vista previa</span>
-              <PersonalStickerCard
-                  sticker={{
-                    nickname: `${user.firstName} ${user.lastName}`,
-                    position: user.position,
-                    area: user.department,
-                    photoUrl: previewImage,
-                    funFact: phrase,
-                  }}
-                  fallbackName={`${user.firstName} ${user.lastName}`}s
-              />
-          {/* <div className="personal-sticker-card">
-            <div className="personal-sticker-image">
-              {previewImage ? <img src={previewImage} alt="Preview" /> : "?"}
-            </div>
 
-            <h3>
-              {user.firstName} {user.lastName}
-            </h3>
-
-            <p>{user.position}</p>
-            <strong>{user.department}</strong>
-
-            {phrase && <blockquote>{phrase}</blockquote>}
-          </div> */}
-          
+          <PersonalStickerCard
+            sticker={{
+              nickname: mySticker?.nickname || fullName,
+              position: mySticker?.position || "Empleado Triunfo",
+              area: mySticker?.area || areaName,
+              photoUrl: previewImage,
+              funFact: phrase,
+            }}
+            fallbackName={fullName}
+          />
         </aside>
-        <button /* type="button" */ className="btn-salir" onClick={handleLogout}>
+
+        <button className="btn-salir" type="button" onClick={handleLogout}>
           Salir
         </button>
       </div>

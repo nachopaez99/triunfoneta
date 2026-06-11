@@ -58,7 +58,7 @@ export function ProdeMatchCard({
         <input
           type="number"
           min="0"
-          disabled={status !== "open" || match.isSaving}
+          disabled={status !== "open" || match.isSaving || match.hasPick}
           value={match.prediction.homeScore}
           onChange={(event) =>
             onPredictionChange(match.id, "homeScore", event.target.value)
@@ -70,7 +70,7 @@ export function ProdeMatchCard({
         <input
           type="number"
           min="0"
-          disabled={status !== "open" || match.isSaving}
+          disabled={status !== "open" || match.isSaving || match.hasPick}
           value={match.prediction.awayScore}
           onChange={(event) =>
             onPredictionChange(match.id, "awayScore", event.target.value)
@@ -91,7 +91,7 @@ export function ProdeMatchCard({
           {status === "finished" && "Finalizado"}
         </span>
 
-        {status === "open" ? (
+        {status === "open" && !match.hasPick ? (
           <button
             className="stock-action"
             type="button"

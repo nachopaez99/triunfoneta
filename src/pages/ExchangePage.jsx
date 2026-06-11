@@ -6,7 +6,7 @@ import { getUsers } from "../services/userService";
 import { StickerStock } from "../components/stock/StickerStock";
 
 export function ExchangePage() {
-  const { duplicates } = useAlbum();
+  /* const { duplicates } = useAlbum(); */
 
   const [users, setUsers] = useState([]);
   const [selectedOffered, setSelectedOffered] = useState(null);
@@ -16,7 +16,7 @@ export function ExchangePage() {
   const [message, setMessage] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const { albumProgress, collection, pasteSticker, backendAreas } = useAlbum();
+  const { collection } = useAlbum();
 
   useEffect(() => {
     async function loadUsers() {
@@ -78,6 +78,7 @@ export function ExchangePage() {
       setLoading(false);
     }
   }
+  const duplicateStickers = collection.filter((item) => item.quantity > 1);
 const stockStickers = collection.map((item) => ({
     id: item.sticker.id,
     number: item.sticker.stickerNumber,
@@ -86,8 +87,10 @@ const stockStickers = collection.map((item) => ({
     position: "Figurita",
     quantity: item.quantity,
     isOwned: item.quantity > 0,
-    isPasted: item.quantity > 0,
+    /* isPasted: item.quantity > 0, */
   }));
+
+  
   return (
     <section className="exchange-page">
       <div className="exchange-main">
@@ -103,11 +106,11 @@ const stockStickers = collection.map((item) => ({
 
           <h4>1. Elegí una repetida para ofrecer</h4>
 
-          {duplicates.length === 0 ? (
+          {duplicateStickers.length === 0 ? (
             <p className="empty-text">No tenés repetidas disponibles.</p>
           ) : (
             <div className="my-repeated-grid">
-              {duplicates.map((item) => (
+              {duplicateStickers.map((item) => (
                 <button
                   type="button"
                   className={
@@ -181,7 +184,8 @@ const stockStickers = collection.map((item) => ({
         </form>
       </div>
       <aside>
-      <StickerStock stickers={stockStickers} onPasteSticker={pasteSticker} /></aside>
+      <StickerStock stickers={stockStickers} />
+      </aside>
     </section>
   );
 }

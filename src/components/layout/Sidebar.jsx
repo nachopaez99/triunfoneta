@@ -8,6 +8,8 @@ const menuItems = [
   { path: "/prode", label: "Prode🏆" },
   { path: "/intercambio", label: "Intercambio🤝" },
   { path: "/perfil", label: "Perfil👤" },
+  { path: "/info", label: "¿Cómo juego? ❓" },
+
   
 ];
 

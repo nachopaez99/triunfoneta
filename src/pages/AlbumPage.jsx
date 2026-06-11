@@ -30,6 +30,7 @@ export function AlbumPage() {
   const [currentPage, setCurrentPage] = useState(0);
 
   const totalPages = Math.ceil(albumProgress.length / AREAS_PER_PAGE);
+  const hasAlbumData = albumProgress.length > 0;
   const isCoverPage = currentPage === 0;
 
   const visibleAreas = isCoverPage
@@ -65,9 +66,15 @@ export function AlbumPage() {
 
   quantity: item.quantity,
   isOwned: item.quantity > 0,
-  isPasted: item.quantity > 0,
+  /* isPasted: item.quantity > 0, */
 }));
-
+if (!hasAlbumData) {
+  return (
+    <section className="album-page">
+      <p>Cargando álbum...</p>
+    </section>
+  );
+}
   return (
     <section className="album-page">
       <div className="album-main">
@@ -218,7 +225,8 @@ export function AlbumPage() {
       </div>
 
       
-    <StickerStock stickers={stockStickers} onPasteSticker={pasteSticker} />
+    {/* <StickerStock stickers={stockStickers} onPasteSticker={pasteSticker} /> */}
+    <StickerStock stickers={stockStickers} />
     <StickerPreviewModal
       sticker={selectedSticker}
       onClose={() => setSelectedSticker(null)}

@@ -82,7 +82,7 @@
     opacity: 1;
     transform: rotateY(0deg) translateX(0);
   }
-} */
+} 
 
 .album-page-sheet > h3 {
   text-align: center;
@@ -94,11 +94,7 @@
 .album-cover {
   min-height: 620px;
   border-radius: 30px;
-  /* background: linear-gradient(
-    135deg,
-    var(--color-primary),
-    var(--color-secondary)
-  ); */
+
   background-image: url('../../assets/estadio.png');
   background-size: 100% 100%;
   background-repeat: no-repeat;
@@ -107,7 +103,7 @@
   place-items: center;
   text-align: center;
   padding: 48px;
-  /* box-sizing: content-box; */
+  
 }
 
 .album-cover span {
@@ -123,7 +119,7 @@
   border-radius: 35px;
   padding: 10px 18px;
   background: rgba(255, 255, 255, 0.57);
-  color: /* var(--color-primary) */rgb(58, 57, 57);
+  color: rgb(58, 57, 57);
   }
 
 .album-cover p {
@@ -139,7 +135,7 @@ transform: translateY(70px);
   border-radius: 999px;
   padding: 10px 18px;
   background: rgba(255, 255, 255, 0.57);
-  color: /* var(--color-primary) */rgb(58, 57, 57);
+  color: rgb(58, 57, 57);
   }
 
 .album-area-grid {
@@ -262,7 +258,7 @@ transform: translateY(70px);
 }
 
 .album-sticker--pasted:hover {
-  transform: /* translateY(-2px)  */scale(1.03);
+  transform: scale(1.03);
 }
 
 .album-sticker {

@@ -1,10 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { getMySticker } from "../services/userService";
-import { stickersMock } from "../data/stickers.mock";
-import { userMock } from "../data/user.mock";
-import { triviaMock } from "../data/trivia.mock";
-import { TRIVIA_POINTS } from "../config/trivia.config";
 import { getAreas } from "../services/areaService";
+import { getGameConfig } from "../services/configService";
 
 import {
   getAlbumProgress,
@@ -15,26 +11,109 @@ import {
 
 const AlbumContext = createContext(null);
 
-const PACK_COST = 150;
-const STICKERS_PER_PACK = 5;
+const ALBUM_CACHE_KEY = "albumData";
+const LAST_PACK_CACHE_KEY = "lastOpenedPack";
+const GAME_CONFIG_CACHE_KEY = "gameConfig";
+
+const DEFAULT_GAME_CONFIG = {
+  packCost: 150,
+  stickersPerPack: 5,
+  stickerCreationPoints: 500,
+  prodeExactPoints: 100,
+  prodeWinnerPoints: 70,
+  areaCompletionPoints: 100,
+  packLegendChance: 0.1,
+};
+
+function safeParseJson(value, fallback) {
+  try {
+    return value ? JSON.parse(value) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function getConfigValue(configs, type, fallback = 0) {
+  const config = configs.find((item) => item.type === type);
+  const value = Number(config?.value);
+
+  return Number.isFinite(value) ? value : fallback;
+}
+
+function normalizeCollectionResponse(response) {
+  return response?.data || [];
+}
 
 export function AlbumProvider({ children }) {
-  const [stickers, setStickers] = useState(stickersMock);
-  const [user, setUser] = useState(userMock);
-  const [lastOpenedPack, setLastOpenedPack] = useState([]);
-  const [trivias, setTrivias] = useState(triviaMock);
   const [backendAreas, setBackendAreas] = useState([]);
-  /* const [albumStickers, setAlbumStickers] = useState([]); */
   const [albumProgress, setAlbumProgress] = useState([]);
   const [collection, setCollection] = useState([]);
   const [duplicates, setDuplicates] = useState([]);
-  /* const [areas, setAreas] = useState([]); */
+  const [isAlbumLoading, setIsAlbumLoading] = useState(false);
+  const [isOpeningPack, setIsOpeningPack] = useState(false);
 
-  useEffect(() => {
-  async function loadAuthenticatedUser() {
+  const [lastOpenedPack, setLastOpenedPack] = useState(() =>
+    safeParseJson(localStorage.getItem(LAST_PACK_CACHE_KEY), [])
+  );
+
+  const [gameConfig, setGameConfig] = useState(() =>
+    safeParseJson(localStorage.getItem(GAME_CONFIG_CACHE_KEY), DEFAULT_GAME_CONFIG)
+  );
+
+  async function refreshGameConfig() {
+    try {
+      const configs = await getGameConfig();
+
+      const nextGameConfig = {
+        packCost: getConfigValue(configs, "PACK_COST_POINTS", DEFAULT_GAME_CONFIG.packCost),
+        stickersPerPack: getConfigValue(
+          configs,
+          "PACK_STICKERS_PER_PACK",
+          DEFAULT_GAME_CONFIG.stickersPerPack
+        ),
+        stickerCreationPoints: getConfigValue(
+          configs,
+          "STICKER_CREATION_POINTS",
+          DEFAULT_GAME_CONFIG.stickerCreationPoints
+        ),
+        prodeExactPoints: getConfigValue(
+          configs,
+          "PRODE_EXACT_POINTS",
+          DEFAULT_GAME_CONFIG.prodeExactPoints
+        ),
+        prodeWinnerPoints: getConfigValue(
+          configs,
+          "PRODE_WINNER_POINTS",
+          DEFAULT_GAME_CONFIG.prodeWinnerPoints
+        ),
+        areaCompletionPoints: getConfigValue(
+          configs,
+          "AREA_COMPLETION_POINTS",
+          DEFAULT_GAME_CONFIG.areaCompletionPoints
+        ),
+        packLegendChance: getConfigValue(
+          configs,
+          "PACK_LEGEND_CHANCE",
+          DEFAULT_GAME_CONFIG.packLegendChance
+        ),
+      };
+
+      setGameConfig(nextGameConfig);
+      localStorage.setItem(GAME_CONFIG_CACHE_KEY, JSON.stringify(nextGameConfig));
+
+      return nextGameConfig;
+    } catch (error) {
+      console.error("Error cargando config del juego:", error);
+      return gameConfig;
+    }
+  }
+
+  async function refreshAlbumData() {
     const token = localStorage.getItem("accessToken");
 
     if (!token) return;
+
+    setIsAlbumLoading(true);
 
     try {
       const [
@@ -49,205 +128,145 @@ export function AlbumProvider({ children }) {
         getMyDuplicates(),
       ]);
 
-      setBackendAreas(areasFromBackend);
-      setAlbumProgress(progressFromBackend);
-      setCollection(collectionFromBackend.data || []);
-      setDuplicates(duplicatesFromBackend.data || []);
+      const nextAlbumData = {
+        backendAreas: Array.isArray(areasFromBackend) ? areasFromBackend : [],
+        albumProgress: Array.isArray(progressFromBackend)
+          ? progressFromBackend
+          : [],
+        collection: normalizeCollectionResponse(collectionFromBackend),
+        duplicates: Array.isArray(duplicatesFromBackend)
+          ? duplicatesFromBackend
+          : normalizeCollectionResponse(duplicatesFromBackend),
+      };
+
+      setBackendAreas(nextAlbumData.backendAreas);
+      setAlbumProgress(nextAlbumData.albumProgress);
+      setCollection(nextAlbumData.collection);
+      setDuplicates(nextAlbumData.duplicates);
+
+      localStorage.setItem(ALBUM_CACHE_KEY, JSON.stringify(nextAlbumData));
     } catch (error) {
-      console.error("Error cargando datos iniciales:", error);
-    }
-
-    try {
-      const backendSticker = await getMySticker();
-
-      setUser((currentUser) => ({
-        ...currentUser,
-        personalSticker: {
-          stickerId: backendSticker.id,
-          photoUrl: backendSticker.photoUrl,
-          phrase: backendSticker.funFact || "",
-        },
-      }));
-    } catch {
-      setUser((currentUser) => ({
-        ...currentUser,
-        personalSticker: null,
-      }));
+      console.error("Error actualizando álbum:", error);
+    } finally {
+      setIsAlbumLoading(false);
     }
   }
 
-  loadAuthenticatedUser();
-}, []);
+  useEffect(() => {
+    const cachedAlbum = safeParseJson(localStorage.getItem(ALBUM_CACHE_KEY), null);
 
-  function pasteSticker(stickerId) {
-    setStickers((currentStickers) =>
-      currentStickers.map((sticker) => {
-        if (sticker.id !== stickerId) {
-          return sticker;
-        }
+    if (cachedAlbum) {
+      setBackendAreas(cachedAlbum.backendAreas || []);
+      setAlbumProgress(cachedAlbum.albumProgress || []);
+      setCollection(cachedAlbum.collection || []);
+      setDuplicates(cachedAlbum.duplicates || []);
+    }
 
-        return {
-          ...sticker,
-          isPasted: true,
-          quantity: Math.max(sticker.quantity - 1, 0),
-        };
-      })
-    );
-  }
+    refreshGameConfig();
+    refreshAlbumData();
+  }, []);
 
-  function getRandomSticker(currentStickers) {
-    const randomIndex = Math.floor(Math.random() * currentStickers.length);
-    return currentStickers[randomIndex];
+  async function pasteSticker() {
+    await refreshAlbumData();
   }
 
   async function openPack() {
-  try {
-    const response = await openPackFromBackend();
+    if (isOpeningPack) return null;
 
-    const openedStickers = response.stickers.map((sticker) => ({
-      id: sticker.id,
-      number: sticker.stickerNumber,
-      employeeName: sticker.nickname,
-      department: sticker.area,
-      position: "Figurita",
-      rarity: "common",
-      imageUrl: sticker.photoUrl || null,
-      isOwned: true,
-      isPasted: true,
-      quantity: 1,
-    }));
-
-    setLastOpenedPack(openedStickers);
+    setIsOpeningPack(true);
 
     try {
-      const updatedProgress = await getAlbumProgress();
-      setAlbumProgress(updatedProgress);
+      const response = await openPackFromBackend();
+
+      const openedStickers = response.stickers.map((sticker) => ({
+        id: sticker.id,
+
+        nickname: sticker.nickname,
+        area: sticker.area,
+        stickerNumber: sticker.stickerNumber,
+        photoUrl: sticker.photoUrl,
+        position: sticker.position || "Figurita",
+        funFact: sticker.funFact,
+
+        number: sticker.stickerNumber,
+        employeeName: sticker.nickname,
+        department: sticker.area,
+
+        rarity: sticker.rarity || "common",
+        isOwned: true,
+        isPasted: true,
+        quantity: 1,
+      }));
+
+      setLastOpenedPack(openedStickers);
+      localStorage.setItem(LAST_PACK_CACHE_KEY, JSON.stringify(openedStickers));
+
+      await refreshAlbumData();
+
+      return openedStickers;
     } catch (error) {
-      console.error("Error actualizando progreso:", error);
-    }
+      console.error("Error abriendo sobre:", error);
 
-    try {
-      const updatedCollection = await getMyCollection();
-      setCollection(updatedCollection.data || []);
-    } catch (error) {
-      console.error("Error actualizando colección:", error);
-    }
+      let message = "No se pudo abrir el sobre.";
 
-    try {
-      const updatedDuplicates = await getMyDuplicates();
-      setDuplicates(updatedDuplicates.data || []);
-    } catch (error) {
-      console.error("Error actualizando repetidas:", error);
-    }
-
-    return openedStickers;
-  } catch (error) {
-  console.error("Error abriendo sobre:", error);
-
-  let message = "No se pudo abrir el sobre.";
-
-  try {
-    const parsedError = JSON.parse(error.message);
-    message = parsedError.message || message;
-  } catch {
-    message = error.message || message;
-  }
-
-  alert(message);
-
-  return null;
-}
-}
-
-  const totalStickers = stickers.length;
-  const pastedStickers = stickers.filter((sticker) => sticker.isPasted).length;
-  const repeatedStickers = stickers.filter((sticker) => sticker.quantity > 1);
-  const newStickers = stickers.filter(
-    (sticker) => sticker.isOwned && !sticker.isPasted
-  );
-
-  const progress = Math.round((pastedStickers / totalStickers) * 100);
-
-  function getRandomTrivia() {
-  const availableTrivias = trivias.filter((trivia) => !trivia.answered);
-
-  if (availableTrivias.length === 0) {
-    return null;
-  }
-
-  const randomIndex = Math.floor(Math.random() * availableTrivias.length);
-  return availableTrivias[randomIndex];
-  }
-
-  function answerTrivia(triviaId, selectedAnswer) {
-  const trivia = trivias.find((item) => item.id === triviaId);
-
-  if (!trivia || trivia.answered) {
-    return {
-      isCorrect: false,
-      pointsEarned: 0,
-    };
-  }
-
-  const isCorrect = trivia.correctAnswer === selectedAnswer;
-  const pointsEarned = isCorrect ? TRIVIA_POINTS[trivia.difficulty] : 0;
-
-  setTrivias((currentTrivias) =>
-    currentTrivias.map((item) => {
-      if (item.id !== triviaId) {
-        return item;
+      try {
+        const parsedError = JSON.parse(error.message);
+        message = parsedError.message || message;
+      } catch {
+        message = error.message || message;
       }
 
-      return {
-        ...item,
-        answered: true,
-        selectedAnswer,
-        isCorrect,
-        pointsEarned,
-      };
-    })
-  );
+      alert(message);
 
-  if (isCorrect) {
-    setUser((currentUser) => ({
-      ...currentUser,
-      points: currentUser.points + pointsEarned,
-    }));
+      return null;
+    } finally {
+      setIsOpeningPack(false);
+    }
   }
 
-  return {
-    isCorrect,
-    pointsEarned,
-  };
-}
+  const totalStickers = albumProgress.reduce(
+    (total, area) => total + area.totalStickers,
+    0
+  );
+
+  const pastedStickers = albumProgress.reduce(
+    (total, area) => total + area.ownedStickers,
+    0
+  );
+
+  const repeatedStickers = collection.filter((item) => item.quantity > 1);
+  const newStickers = collection.filter((item) => item.quantity > 0);
+
+  const progress =
+    totalStickers > 0 ? Math.round((pastedStickers / totalStickers) * 100) : 0;
 
   const value = {
-    user,
-    stickers,
     totalStickers,
     pastedStickers,
     repeatedStickers,
     newStickers,
     progress,
-    packCost: PACK_COST,
-    stickersPerPack: STICKERS_PER_PACK,
+
+    packCost: gameConfig.packCost,
+    stickersPerPack: gameConfig.stickersPerPack,
+    gameConfig,
+
     lastOpenedPack,
-    pasteSticker,
-    openPack,
-    setUser,
-    trivias,
-    getRandomTrivia,
-    answerTrivia,
+    isAlbumLoading,
+    isOpeningPack,
+
     backendAreas,
-    /* albumStickers, */
     albumProgress,
     collection,
     duplicates,
-    };
 
-    return (
-    <AlbumContext.Provider value={value}>{children}</AlbumContext.Provider>
-  );
+    pasteSticker,
+    openPack,
+    refreshAlbumData,
+    refreshGameConfig,
+  };
+
+  return <AlbumContext.Provider value={value}>{children}</AlbumContext.Provider>;
 }
 
 export function useAlbum() {
@@ -259,4 +278,3 @@ export function useAlbum() {
 
   return context;
 }
-

@@ -9,6 +9,8 @@ import { TriviaPage } from "../pages/TriviaPage";
 import { ProdePage } from "../pages/ProdePage";
 import { ExchangePage } from "../pages/ExchangePage";
 import { ProfilePage } from "../pages/ProfilePage";
+import { InfoPage } from "../pages/InfoPage";
+
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -64,6 +66,7 @@ export function AppRouter() {
         <Route path="prode" element={<ProdePage />} />
         <Route path="intercambio" element={<ExchangePage />} />
         <Route path="perfil" element={<ProfilePage />} />
+        <Route path="/info" element={<InfoPage/>} />
       </Route>
     </Routes>
   );

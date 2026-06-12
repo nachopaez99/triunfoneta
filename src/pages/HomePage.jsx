@@ -20,7 +20,7 @@ const {
   progress,
   pastedStickers,
   totalStickers,
-  newStickers,
+  /* newStickers, */
   repeatedStickers,
   packCost,
   stickersPerPack,
@@ -79,11 +79,11 @@ function getProgressColor() {
           </p>
         </article>
 
-        <article className="dashboard-card">
+        {/* <article className="dashboard-card">
           <span>Figuritas nuevas</span>
           <strong>{newStickers.length}</strong>
           <p>Disponibles para pegar</p>
-        </article>
+        </article> */}
 
         <article className="dashboard-card">
           <span>Repetidas</span>

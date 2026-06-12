@@ -213,7 +213,11 @@ export function AlbumProvider({ children }) {
       const openedStickers = response.stickers.map((sticker) => ({
         id: sticker.id,
 
-        nickname: sticker.nickname,
+        nickname:
+  sticker.nickname ||
+  sticker.fullName ||
+  sticker.user?.fullName ||
+  "Usuario",
         area: sticker.area,
         stickerNumber: sticker.stickerNumber,
         photoUrl: sticker.photoUrl,
@@ -221,7 +225,11 @@ export function AlbumProvider({ children }) {
         funFact: sticker.funFact,
 
         number: sticker.stickerNumber,
-        employeeName: sticker.nickname,
+        employeeName:
+  sticker.nickname ||
+  sticker.fullName ||
+  sticker.user?.fullName ||
+  "Usuario",
         department: sticker.area,
 
         rarity: sticker.rarity || "common",

@@ -120,10 +120,11 @@ function getProgressColor() {
           </button> */}
           <button
   className="primary-button"
-  disabled
-  title="Funcionalidad temporalmente deshabilitada"
+  type="button"
+  onClick={handleOpenPack}
+  disabled={isOpeningPack}
 >
-  Comprar sobre (próximamente)
+  {isOpeningPack ? "Abriendo..." : "Comprar sobre"}
 </button>
           
         </div>

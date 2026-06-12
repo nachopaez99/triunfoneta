@@ -5,11 +5,13 @@ function formatDateTime(dateString) {
 
   return {
     date: date.toLocaleDateString("es-AR", {
+      timeZone: "America/Argentina/Buenos_Aires",
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
     }),
     time: date.toLocaleTimeString("es-AR", {
+      timeZone: "America/Argentina/Buenos_Aires",
       hour: "2-digit",
       minute: "2-digit",
     }),
@@ -45,7 +47,7 @@ export function ProdeMatchCard({
 
       <div className="prode-card__meta">
         <span>{match.stage}</span>
-        {match.group && <strong>Grupo {match.group}</strong>}
+        {match.group && <strong> - Grupo {match.group}</strong>}
       </div>
 
       <div className="prode-card__teams">

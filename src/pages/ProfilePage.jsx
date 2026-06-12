@@ -4,19 +4,19 @@ import { useAuth } from "../context/AuthContext";
 import { PersonalStickerCard } from "../components/sticker/PersonalStickerCard";
 import {
   createMySticker,
-  getBackendFileUrl,
-  getMySticker,
+  getUserImageUrl,
+  updateMySticker,
   uploadMyStickerPhoto,
 } from "../services/userService";
 import { changePassword } from "../services/authService";
 
 export function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { user, mySticker, logout, refreshMySticker } = useAuth();
   const navigate = useNavigate();
 
-  const [mySticker, setMySticker] = useState(null);
   const [previewImage, setPreviewImage] = useState("");
   const [phrase, setPhrase] = useState("");
+  const [nickname, setNickname] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -27,25 +27,12 @@ export function ProfilePage() {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   useEffect(() => {
-    async function loadSticker() {
-      if (!user) return;
+    if (!user) return;
 
-      try {
-        const sticker = await getMySticker();
-
-        setMySticker(sticker);
-        setPreviewImage(getBackendFileUrl(sticker.photoUrl) || user.avatarUrl || "");
-        setPhrase(sticker.funFact || "");
-      } catch (error) {
-        console.error("Error cargando figurita:", error);
-        setMySticker(null);
-        setPreviewImage(user.avatarUrl || "");
-        setPhrase("");
-      }
-    }
-
-    loadSticker();
-  }, [user]);
+    setPreviewImage(getUserImageUrl(mySticker?.photoUrl, user?.avatarUrl));
+    setPhrase(mySticker?.funFact || "");
+    setNickname(mySticker?.nickname || user.fullName || "");
+  }, [user, mySticker]);
 
   if (!user) {
     return (
@@ -57,6 +44,7 @@ export function ProfilePage() {
 
   const fullName = user.fullName || "Usuario";
   const areaName = user.area?.name || "Sin área";
+  const hasPhoto = Boolean(mySticker?.photoUrl);
 
   function handleImageChange(event) {
     const file = event.target.files[0];
@@ -72,6 +60,8 @@ export function ProfilePage() {
   }
 
   async function handleSubmitSticker() {
+    const cleanNickname = nickname.trim() || fullName;
+
     if (!selectedFile && !mySticker) {
       alert("Debés cargar una foto para crear tu figurita.");
       return;
@@ -80,23 +70,29 @@ export function ProfilePage() {
     setIsSaving(true);
 
     try {
+      const payload = {
+        nickname: cleanNickname.slice(0, 30),
+        funFact: phrase || "",
+        useAvatar: false,
+        yearsInCompany: mySticker?.yearsInCompany || 0,
+        position: mySticker?.position || "Empleado Triunfo",
+      };
+
       if (!mySticker) {
-        await createMySticker({
-          nickname: fullName.slice(0, 30),
-          funFact: phrase || "",
-          useAvatar: false,
-        });
+        await createMySticker(payload);
+      } else {
+        await updateMySticker(payload);
       }
 
       if (selectedFile) {
         await uploadMyStickerPhoto(selectedFile);
       }
 
-      const updatedSticker = await getMySticker();
+      const updatedSticker = await refreshMySticker();
 
-      setMySticker(updatedSticker);
-      setPreviewImage(getBackendFileUrl(updatedSticker.photoUrl) || user.avatarUrl || "");
-      setPhrase(updatedSticker.funFact || phrase);
+      setNickname(updatedSticker?.nickname || fullName);
+      setPreviewImage(getUserImageUrl(updatedSticker?.photoUrl, user?.avatarUrl));
+      setPhrase(updatedSticker?.funFact || phrase);
       setSelectedFile(null);
 
       alert("Figurita guardada correctamente.");
@@ -129,10 +125,7 @@ export function ProfilePage() {
     setIsChangingPassword(true);
 
     try {
-      await changePassword({
-        currentPassword,
-        newPassword,
-      });
+      await changePassword({ currentPassword, newPassword });
 
       alert("Contraseña actualizada correctamente.");
 
@@ -180,6 +173,16 @@ export function ProfilePage() {
           </div>
 
           <div className="form-group">
+            <label>Apodo para tu figurita</label>
+            <input
+              value={nickname}
+              onChange={(event) => setNickname(event.target.value)}
+              placeholder="Elegí tu apodo"
+              maxLength={30}
+            />
+          </div>
+
+          <div className="form-group">
             <label>Frase para tu figurita</label>
             <textarea
               value={phrase}
@@ -190,25 +193,32 @@ export function ProfilePage() {
 
           <div className="form-group">
             <label>Foto de figurita</label>
-            <input type="file" accept="image/*" onChange={handleImageChange} />
+            <input
+  type="file"
+  accept="image/*"
+  onChange={handleImageChange}
+  disabled={hasPhoto}
+/>
+
+{hasPhoto && (
+  <p className="empty-text">
+    Ya cargaste tu foto de figurita. No puede modificarse.
+  </p>
+)}
           </div>
 
-          <button
-            className="primary-button"
-            type="button"
-            onClick={handleSubmitSticker}
-            disabled={isSaving}
-          >
-            {isSaving ? "Guardando..." : "Guardar figurita"}
-          </button>
+          <div className="profile-actions">
+  <button
+    className="primary-button"
+    type="button"
+    onClick={handleSubmitSticker}
+    disabled={isSaving || hasPhoto}
+  >
+    {isSaving ? "Guardando..." : "Guardar figurita"}
+  </button>
 
-          <button
-            className="secondary-button"
-            type="button"
-            onClick={() => setIsPasswordModalOpen(true)}
-          >
-            Cambiar contraseña
-          </button>
+  
+</div>
         </form>
 
         <aside className="personal-sticker-preview">
@@ -216,7 +226,7 @@ export function ProfilePage() {
 
           <PersonalStickerCard
             sticker={{
-              nickname: mySticker?.nickname || fullName,
+              nickname: nickname.trim() || fullName,
               position: mySticker?.position || "Empleado Triunfo",
               area: mySticker?.area || areaName,
               photoUrl: previewImage,
@@ -229,6 +239,13 @@ export function ProfilePage() {
         <button className="btn-salir" type="button" onClick={handleLogout}>
           Salir
         </button>
+        <button
+    className="profile-password-button"
+    type="button"
+    onClick={() => setIsPasswordModalOpen(true)}
+  >
+    Cambiar contraseña
+  </button>
       </div>
 
       {isPasswordModalOpen && (

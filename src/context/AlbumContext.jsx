@@ -15,6 +15,7 @@ const ALBUM_CACHE_KEY = "albumData";
 const LAST_PACK_CACHE_KEY = "lastOpenedPack";
 const GAME_CONFIG_CACHE_KEY = "gameConfig";
 
+
 const DEFAULT_GAME_CONFIG = {
   packCost: 150,
   stickersPerPack: 5,
@@ -34,6 +35,8 @@ function safeParseJson(value, fallback) {
 }
 
 function getConfigValue(configs, type, fallback = 0) {
+  if (!Array.isArray(configs)) return fallback;
+
   const config = configs.find((item) => item.type === type);
   const value = Number(config?.value);
 
@@ -51,6 +54,7 @@ export function AlbumProvider({ children }) {
   const [duplicates, setDuplicates] = useState([]);
   const [isAlbumLoading, setIsAlbumLoading] = useState(false);
   const [isOpeningPack, setIsOpeningPack] = useState(false);
+  const [isConfigLoading, setIsConfigLoading] = useState(false);
 
   const [lastOpenedPack, setLastOpenedPack] = useState(() =>
     safeParseJson(localStorage.getItem(LAST_PACK_CACHE_KEY), [])
@@ -61,6 +65,34 @@ export function AlbumProvider({ children }) {
   );
 
   async function refreshGameConfig() {
+  setIsConfigLoading(true);
+
+  try {
+    const configs = await getGameConfig();
+
+    const nextGameConfig = {
+      packCost: getConfigValue(configs, "PACK_COST_POINTS", DEFAULT_GAME_CONFIG.packCost),
+      stickersPerPack: getConfigValue(configs, "PACK_STICKERS_PER_PACK", DEFAULT_GAME_CONFIG.stickersPerPack),
+      stickerCreationPoints: getConfigValue(configs, "STICKER_CREATION_POINTS", DEFAULT_GAME_CONFIG.stickerCreationPoints),
+      prodeExactPoints: getConfigValue(configs, "PRODE_EXACT_POINTS", DEFAULT_GAME_CONFIG.prodeExactPoints),
+      prodeWinnerPoints: getConfigValue(configs, "PRODE_WINNER_POINTS", DEFAULT_GAME_CONFIG.prodeWinnerPoints),
+      areaCompletionPoints: getConfigValue(configs, "AREA_COMPLETION_POINTS", DEFAULT_GAME_CONFIG.areaCompletionPoints),
+      packLegendChance: getConfigValue(configs, "PACK_LEGEND_CHANCE", DEFAULT_GAME_CONFIG.packLegendChance),
+    };
+
+    setGameConfig(nextGameConfig);
+    localStorage.setItem(GAME_CONFIG_CACHE_KEY, JSON.stringify(nextGameConfig));
+
+    return nextGameConfig;
+  } catch (error) {
+    console.error("Error cargando config del juego:", error);
+    return gameConfig;
+  } finally {
+    setIsConfigLoading(false);
+  }
+}
+
+  /* async function refreshGameConfig() {
     try {
       const configs = await getGameConfig();
 
@@ -106,7 +138,7 @@ export function AlbumProvider({ children }) {
       console.error("Error cargando config del juego:", error);
       return gameConfig;
     }
-  }
+  } */
 
   async function refreshAlbumData() {
     const token = localStorage.getItem("accessToken");
@@ -264,6 +296,7 @@ export function AlbumProvider({ children }) {
     openPack,
     refreshAlbumData,
     refreshGameConfig,
+    isConfigLoading,
   };
 
   return <AlbumContext.Provider value={value}>{children}</AlbumContext.Provider>;

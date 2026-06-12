@@ -57,6 +57,8 @@ export function getBackendFileUrl(fileUrl) {
   return `${BACKEND_URL}${fileUrl}`;
 } */
 import { apiRequest } from "./apiClient";
+import defaultAvatar from "../assets/defaultAvatar.png"
+
 
 const API_URL = import.meta.env.VITE_API_URL;
 const BACKEND_URL = API_URL.replace("/api", "");
@@ -64,11 +66,31 @@ const BACKEND_URL = API_URL.replace("/api", "");
 export function getBackendFileUrl(fileUrl) {
   if (!fileUrl) return "";
 
-  if (fileUrl.startsWith("http")) {
+  if (
+    fileUrl.startsWith("http") ||
+    fileUrl.startsWith("blob:") ||
+    fileUrl.startsWith("data:")
+  ) {
     return fileUrl;
   }
 
-  return `${BACKEND_URL}${fileUrl}`;
+  if (fileUrl.startsWith("/uploads/")) {
+    return `${BACKEND_URL}${fileUrl}`;
+  }
+
+  if (fileUrl.startsWith("/")) {
+    return fileUrl;
+  }
+
+  return fileUrl;
+}
+
+export function getUserImageUrl(photoUrl, avatarUrl) {
+  return (
+    getBackendFileUrl(photoUrl) ||
+    getBackendFileUrl(avatarUrl) ||
+    defaultAvatar
+  );
 }
 
 export function getCurrentUser() {
@@ -112,3 +134,17 @@ export async function uploadMyStickerPhoto(file) {
 
   return text ? JSON.parse(text) : null;
 }
+
+export function updateMySticker(payload) {
+  return apiRequest("/users/me/sticker", {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+/* export function getUserImageUrl(photoUrl, avatarUrl) {
+  return (
+    getBackendFileUrl(photoUrl) ||
+    getBackendFileUrl(avatarUrl) ||
+    "/default-avatar.png"
+  );
+} */

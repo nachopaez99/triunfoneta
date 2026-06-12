@@ -5,36 +5,72 @@ import {
 } from "../services/triviaService";
 import { useAuth } from "../context/AuthContext";
 
+const TRIVIA_CACHE_KEY = "currentTrivia";
+
+function safeParseJson(value, fallback) {
+  try {
+    return value ? JSON.parse(value) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export function TriviaPage() {
-  const [triviaData, setTriviaData] = useState(null);
+  const cachedTrivia = safeParseJson(
+    localStorage.getItem(TRIVIA_CACHE_KEY),
+    null
+  );
+
+  const [triviaData, setTriviaData] = useState(cachedTrivia);
   const [selectedOptionId, setSelectedOptionId] = useState(null);
   const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cachedTrivia);
   const [answering, setAnswering] = useState(false);
   const [error, setError] = useState("");
 
   const { refreshUser } = useAuth();
 
-  async function loadTrivia() {
+  async function loadTrivia({ showLoading = true } = {}) {
+  if (showLoading) {
     setLoading(true);
-    setError("");
-    setResult(null);
-    setSelectedOptionId(null);
-
-    try {
-      const data = await getTriviaQuestion();
-      setTriviaData(data);
-    } catch (error) {
-      console.error("Error cargando trivia:", error);
-      setError("No se pudo cargar la trivia.");
-    } finally {
-      setLoading(false);
-    }
   }
 
-  useEffect(() => {
+  setError("");
+  setResult(null);
+  setSelectedOptionId(null);
+
+  try {
+    const data = await getTriviaQuestion();
+
+    if (!data?.question || !Array.isArray(data?.options)) {
+      localStorage.removeItem(TRIVIA_CACHE_KEY);
+      setTriviaData(null);
+      setError("No hay preguntas disponibles para responder.");
+      return;
+    }
+
+    setTriviaData(data);
+    localStorage.setItem(TRIVIA_CACHE_KEY, JSON.stringify(data));
+  } catch (error) {
+    console.error("Error cargando trivia:", error);
+
+    localStorage.removeItem(TRIVIA_CACHE_KEY);
+    setTriviaData(null);
+    setError(error.message || "No hay preguntas disponibles para responder.");
+  } finally {
+    setLoading(false);
+  }
+}
+
+useEffect(() => {
+  if (!cachedTrivia?.question || !Array.isArray(cachedTrivia?.options)) {
+    localStorage.removeItem(TRIVIA_CACHE_KEY);
     loadTrivia();
-  }, []);
+    return;
+  }
+
+  loadTrivia({ showLoading: false });
+}, []);
 
   async function handleSubmitAnswer() {
     if (!triviaData || selectedOptionId === null || result) return;
@@ -48,6 +84,8 @@ export function TriviaPage() {
       );
 
       setResult(response);
+      localStorage.removeItem(TRIVIA_CACHE_KEY);
+
       await refreshUser();
     } catch (error) {
       console.error("Error respondiendo trivia:", error);
@@ -71,7 +109,11 @@ export function TriviaPage() {
         <section className="empty-state">
           <h3>Ocurrió un error</h3>
           <p>{error}</p>
-          <button className="primary-button" type="button" onClick={loadTrivia}>
+          <button
+            className="primary-button"
+            type="button"
+            onClick={() => loadTrivia()}
+          >
             Reintentar
           </button>
         </section>
@@ -79,9 +121,7 @@ export function TriviaPage() {
     );
   }
 
-  if (!triviaData) {
-    return null;
-  }
+  if (!triviaData) return null;
 
   return (
     <section className="trivia-page">
@@ -150,7 +190,11 @@ export function TriviaPage() {
               {answering ? "Respondiendo..." : "Responder"}
             </button>
           ) : (
-            <button className="primary-button" type="button" onClick={loadTrivia}>
+            <button
+              className="primary-button"
+              type="button"
+              onClick={() => loadTrivia()}
+            >
               Siguiente trivia
             </button>
           )}

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAlbum } from "../context/AlbumContext";
 import { StickerStock } from "../components/stock/StickerStock";
 import { StickerPreviewModal } from "../components/sticker/StickerPreviewModal";
-import { getBackendFileUrl } from "../services/userService";
+import { getUserImageUrl } from "../services/userService";
 
 const AREAS_PER_PAGE = 5;
 
@@ -157,13 +157,10 @@ if (!hasAlbumData) {
                                         className="album-sticker__photo"
                                         style={{ borderColor: color }}
                                       >
-                                        {sticker.photoUrl ? (
-                                          <img src={getBackendFileUrl(sticker.photoUrl)} alt={sticker.nickname} />
-                                        ) : (
-                                          <span style={{ backgroundColor: color }}>
-                                            {sticker.nickname?.charAt(0)}
-                                          </span>
-                                        )}
+                                        <img
+                                          src={getUserImageUrl(sticker.photoUrl, sticker.avatarUrl)}
+                                          alt={sticker.nickname || "Figurita"}
+                                        />
                                       </div>
 
                                       <div className="album-sticker__info">

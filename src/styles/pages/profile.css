@@ -194,3 +194,32 @@
   font-size: 22px;
   cursor: pointer;
 }
+
+.profile-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.profile-actions button {
+  flex: 1;
+}
+
+.profile-password-button {
+  height: 44px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #514078;
+  color: white;
+
+  font-weight: 600;
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.profile-password-button:hover {
+  background: #5a4b7d;
+}

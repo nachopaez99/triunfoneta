@@ -8,7 +8,14 @@ export function login(credentials) {
 }
 
 export function changePassword(payload) {
-  return apiRequest("/auth/change-password", {
+  return apiRequest("/users/me/change-password", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function resetPassword(payload) {
+  return apiRequest("/auth/reset-password", {
     method: "POST",
     body: JSON.stringify(payload),
   });

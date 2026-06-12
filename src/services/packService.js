@@ -17,3 +17,7 @@ export function getMyCollection() {
 export function getMyDuplicates() {
   return apiRequest("/packs/collection/me/duplicates");
 }
+
+export function getMyDuplicateCollection() {
+  return apiRequest("/packs/collection/me?duplicatesOnly=true");
+}

@@ -7,17 +7,59 @@ import {
   getProdeMatches,
 } from "../services/prodeService";
 
+const PRODE_CACHE_KEY = "prodeData";
+
+function safeParseJson(value, fallback) {
+  try {
+    return value ? JSON.parse(value) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function normalizeProdeData(matchesResponse, picksResponse) {
+  const backendMatches = matchesResponse.data || matchesResponse || [];
+  const backendPicks = picksResponse.data || picksResponse || [];
+
+  return {
+    picks: backendPicks,
+    matches: backendMatches.map((match) => {
+      const existingPick = backendPicks.find(
+        (pick) => pick.matchId === match.id || pick.match?.id === match.id
+      );
+
+      return {
+        ...match,
+        prediction: {
+          homeScore:
+            existingPick?.predictedHome ??
+            existingPick?.homeScore ??
+            "",
+          awayScore:
+            existingPick?.predictedAway ??
+            existingPick?.awayScore ??
+            "",
+        },
+        hasPick: Boolean(existingPick),
+      };
+    }),
+  };
+}
+
 export function ProdePage() {
-  const [matches, setMatches] = useState([]);
-  const [picks, setPicks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const cachedProde = safeParseJson(localStorage.getItem(PRODE_CACHE_KEY), null);
+
+  const [matches, setMatches] = useState(cachedProde?.matches || []);
+  const [picks, setPicks] = useState(cachedProde?.picks || []);
+  const [loading, setLoading] = useState(!cachedProde);
   const [savingMatchId, setSavingMatchId] = useState(null);
   const [error, setError] = useState("");
 
+  async function loadProde({ showLoading = true } = {}) {
+    if (showLoading) {
+      setLoading(true);
+    }
 
-
-  async function loadProde() {
-    setLoading(true);
     setError("");
 
     try {
@@ -26,51 +68,31 @@ export function ProdePage() {
         getMyProdePicks(),
       ]);
 
-      const backendMatches = matchesResponse.data || matchesResponse;
-      const backendPicks = picksResponse.data || picksResponse;
+      const nextProdeData = normalizeProdeData(matchesResponse, picksResponse);
 
-      setPicks(backendPicks);
+      setPicks(nextProdeData.picks);
+      setMatches(nextProdeData.matches);
 
-      setMatches(
-        backendMatches.map((match) => {
-          const existingPick = backendPicks.find(
-            (pick) => pick.matchId === match.id || pick.match?.id === match.id
-          );
-
-          return {
-            ...match,
-            prediction: {
-  homeScore:
-    existingPick?.predictedHome ??
-    existingPick?.homeScore ??
-    "",
-  awayScore:
-    existingPick?.predictedAway ??
-    existingPick?.awayScore ??
-    "",
-},
-hasPick: Boolean(existingPick),
-          };
-        })
-      );
+      localStorage.setItem(PRODE_CACHE_KEY, JSON.stringify(nextProdeData));
     } catch (error) {
       console.error("Error cargando prode:", error);
-      setError(error.message || "No se pudo cargar el prode.");
+
+      if (!cachedProde) {
+        setError(error.message || "No se pudo cargar el prode.");
+      }
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    loadProde();
+    loadProde({ showLoading: !cachedProde });
   }, []);
 
   function handlePredictionChange(matchId, field, value) {
     setMatches((currentMatches) =>
       currentMatches.map((match) => {
-        if (match.id !== matchId) {
-          return match;
-        }
+        if (match.id !== matchId) return match;
 
         return {
           ...match,
@@ -86,7 +108,6 @@ hasPick: Boolean(existingPick),
   async function handleSavePrediction(matchId) {
     const match = matches.find((item) => item.id === matchId);
 
-
     if (!match) return;
 
     const homeScore = Number(match.prediction.homeScore);
@@ -101,11 +122,11 @@ hasPick: Boolean(existingPick),
 
     try {
       await createProdePick(matchId, {
-  predictedHome: homeScore,
-  predictedAway: awayScore,
-});
+        predictedHome: homeScore,
+        predictedAway: awayScore,
+      });
 
-      await loadProde();
+      await loadProde({ showLoading: false });
 
       alert("Pronóstico guardado.");
     } catch (error) {

@@ -1,6 +1,7 @@
 import { StickerCard } from "../sticker/StickerCard";
 
-export function AlbumSection({ department, stickers }) {
+export function AlbumSection({ 
+  department, stickers }) {
   const pastedCount = stickers.filter((sticker) => sticker.isPasted).length;
 
   return (

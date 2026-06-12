@@ -28,6 +28,8 @@ export function ExchangePage() {
   const [receivedTrades, setReceivedTrades] = useState([]);
   const [tradeActionLoadingId, setTradeActionLoadingId] = useState(null);
 
+  const [userSearch, setUserSearch] = useState("");
+
   async function loadTrades() {
   try {
     const response = await getMyTrades();
@@ -173,7 +175,9 @@ const stockStickers = collection.map((item) => ({
     /* isPasted: item.quantity > 0, */
   }));
 
-  
+  const filteredUsers = users.filter((user) =>
+  user.fullName?.toLowerCase().includes(userSearch.toLowerCase())
+);
   return (
     <section className="exchange-page">
       <div className="exchange-main">
@@ -214,17 +218,41 @@ const stockStickers = collection.map((item) => ({
 
           <h4>2. Elegí el empleado con quien querés intercambiar</h4>
 
-          <select
-            value={selectedUserId}
-            onChange={(event) => handleSelectUser(event.target.value)}
+          <div className="exchange-user-search">
+  <input
+    type="text"
+    value={userSearch}
+    placeholder="Buscar empleado..."
+    onChange={(event) => {
+      setUserSearch(event.target.value);
+      setSelectedUserId("");
+      setSelectedRequested(null);
+      setTargetCollection([]);
+    }}
+  />
+
+  {userSearch && !selectedUserId && (
+    <div className="exchange-user-results">
+      {filteredUsers.length === 0 ? (
+        <p className="empty-text">No se encontraron empleados.</p>
+      ) : (
+        filteredUsers.map((user) => (
+          <button
+            type="button"
+            key={user.id}
+            className="exchange-user-option"
+            onClick={() => {
+              setUserSearch(user.fullName);
+              handleSelectUser(String(user.id));
+            }}
           >
-            <option value="">Seleccionar empleado</option>
-            {users.map((user) => (
-              <option value={user.id} key={user.id}>
-                {user.fullName}
-              </option>
-            ))}
-          </select>
+            {user.fullName}
+          </button>
+        ))
+      )}
+    </div>
+  )}
+</div>
 
           <h4>3. Elegí la figurita que querés pedir</h4>
 

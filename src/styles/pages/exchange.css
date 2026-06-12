@@ -198,3 +198,60 @@
 .exchange-btn--danger:hover:not(:disabled) {
   background: #b91c1c;
 }
+
+.exchange-user-search {
+  width: 100%;
+}
+
+.exchange-user-search input {
+  width: 100%;
+}
+
+.exchange-user-results {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.exchange-user-option {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  color: #111827;
+  text-align: left;
+  cursor: pointer;
+}
+
+.exchange-user-option:hover {
+  background: #f3f4f6;
+}
+
+.exchange-user-search {
+  position: relative;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.exchange-user-search input {
+  width: 100%;
+  padding: 14px 18px;
+
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+
+  font-size: 15px;
+  background: #fff;
+
+  transition: all 0.2s ease;
+}
+
+.exchange-user-search input:focus {
+  outline: none;
+  border-color: #007a53;
+  box-shadow: 0 0 0 4px rgba(0, 122, 83, 0.15);
+}

@@ -102,7 +102,7 @@ export function getMySticker() {
 }
 
 export function getUsers() {
-  return apiRequest("/users");
+  return apiRequest("/users?page=1&limit=1000");
 }
 
 export function createMySticker(payload) {

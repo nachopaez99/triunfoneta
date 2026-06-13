@@ -9,11 +9,15 @@ export function PersonalStickerCard({ sticker, fallbackName }) {
     fallbackName ||
     "Usuario";
 
+const isLegend =
+  sticker?.isLegend === true ||
+  sticker?.rarity === "legend";
+
   const imageUrl = getUserImageUrl(
     sticker?.photoUrl || sticker?.imageUrl,
     sticker?.avatarUrl
   );
-
+console.log("PERSONAL STICKER", sticker);
   return (
     <div className="personal-sticker-card">
       <div className="personal-sticker-image">
@@ -22,7 +26,7 @@ export function PersonalStickerCard({ sticker, fallbackName }) {
 
       <h3>{displayName}</h3>
 
-      <p>{sticker?.position || "Empleado Triunfo"}</p>
+      {isLegend && <div className="sticker-legend">LEYENDA</div>}
 
       <strong>{sticker?.area || "Sin área"}</strong>
 

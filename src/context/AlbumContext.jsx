@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { getAreas } from "../services/areaService";
 import { getGameConfig } from "../services/configService";
+import { getUsers } from "../services/userService";
 
 import {
   getAlbumProgress,
@@ -45,6 +46,32 @@ function getConfigValue(configs, type, fallback = 0) {
 
 function normalizeCollectionResponse(response) {
   return response?.data || [];
+}
+
+function normalizeUsersResponse(response) {
+  return response?.data || response || [];
+}
+
+function getUserNameById(users, userId) {
+  return users.find((user) => user.id === userId)?.fullName || null;
+}
+
+function enrichCollectionWithUsers(collection, users) {
+  return collection.map((item) => {
+    const fullName =
+      item.sticker?.fullName ||
+      item.sticker?.user?.fullName ||
+      getUserNameById(users, item.sticker?.userId);
+
+    return {
+      ...item,
+      sticker: {
+        ...item.sticker,
+        fullName,
+        nickname: item.sticker?.nickname || fullName || null,
+      },
+    };
+  });
 }
 
 export function AlbumProvider({ children }) {
@@ -149,26 +176,36 @@ export function AlbumProvider({ children }) {
 
     try {
       const [
-        areasFromBackend,
-        progressFromBackend,
-        collectionFromBackend,
-        duplicatesFromBackend,
-      ] = await Promise.all([
-        getAreas(),
-        getAlbumProgress(),
-        getMyCollection(),
-        getMyDuplicates(),
-      ]);
+  areasFromBackend,
+  progressFromBackend,
+  collectionFromBackend,
+  duplicatesFromBackend,
+  usersFromBackend,
+] = await Promise.all([
+  getAreas(),
+  getAlbumProgress(),
+  getMyCollection(),
+  getMyDuplicates(),
+  getUsers(),
+]);
+
+const users = normalizeUsersResponse(usersFromBackend);
 
       const nextAlbumData = {
         backendAreas: Array.isArray(areasFromBackend) ? areasFromBackend : [],
         albumProgress: Array.isArray(progressFromBackend)
           ? progressFromBackend
           : [],
-        collection: normalizeCollectionResponse(collectionFromBackend),
-        duplicates: Array.isArray(duplicatesFromBackend)
-          ? duplicatesFromBackend
-          : normalizeCollectionResponse(duplicatesFromBackend),
+        collection: enrichCollectionWithUsers(
+  normalizeCollectionResponse(collectionFromBackend),
+  users
+),
+duplicates: enrichCollectionWithUsers(
+  Array.isArray(duplicatesFromBackend)
+    ? duplicatesFromBackend
+    : normalizeCollectionResponse(duplicatesFromBackend),
+  users
+),
       };
 
       setBackendAreas(nextAlbumData.backendAreas);
@@ -208,35 +245,45 @@ export function AlbumProvider({ children }) {
     setIsOpeningPack(true);
 
     try {
-      const response = await openPackFromBackend();
+  const response = await openPackFromBackend();
 
-      const openedStickers = response.stickers.map((sticker) => ({
-        id: sticker.id,
+  console.log("PACK RESPONSE:", response);
+  console.log("PACK STICKERS:", response.stickers);
 
-        nickname:
-  sticker.nickname ||
-  sticker.fullName ||
-  sticker.user?.fullName ||
-  "Usuario",
-        area: sticker.area,
-        stickerNumber: sticker.stickerNumber,
-        photoUrl: sticker.photoUrl,
-        position: sticker.position || "Figurita",
-        funFact: sticker.funFact,
+  const openedStickers = response.stickers.map((sticker) => {
+  const displayName =
+    sticker.nickname ||
+    sticker.fullName ||
+    sticker.user?.fullName ||
+    null;
 
-        number: sticker.stickerNumber,
-        employeeName:
-  sticker.nickname ||
-  sticker.fullName ||
-  sticker.user?.fullName ||
-  "Usuario",
-        department: sticker.area,
+  return {
+    id: sticker.id,
+    nickname: displayName,
+    fullName: sticker.fullName || sticker.user?.fullName || null,
 
-        rarity: sticker.rarity || "common",
-        isOwned: true,
-        isPasted: true,
-        quantity: 1,
-      }));
+    area: sticker.area,
+    stickerNumber: sticker.stickerNumber,
+    photoUrl: sticker.photoUrl,
+    avatarUrl: sticker.avatarUrl,
+    position: sticker.position || null,
+    funFact: sticker.funFact,
+
+    number: sticker.stickerNumber,
+    employeeName: displayName,
+    department: sticker.area,
+
+    rarity: sticker.rarity || "common",
+    isLegend:
+      sticker.isLegend === true ||
+      sticker.rarity === "legend" ||
+      sticker.rarity === "legendary",
+
+    isOwned: true,
+    isPasted: true,
+    quantity: 1,
+  };
+});
 
       setLastOpenedPack(openedStickers);
       localStorage.setItem(LAST_PACK_CACHE_KEY, JSON.stringify(openedStickers));
@@ -255,6 +302,7 @@ export function AlbumProvider({ children }) {
       } catch {
         message = error.message || message;
       }
+      
 
       alert(message);
 
@@ -262,6 +310,10 @@ export function AlbumProvider({ children }) {
     } finally {
       setIsOpeningPack(false);
     }
+
+
+
+
   }
 
   const totalStickers = albumProgress.reduce(

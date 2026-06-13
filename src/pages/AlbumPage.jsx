@@ -59,6 +59,8 @@ export function AlbumPage() {
   photoUrl: item.sticker.photoUrl,
   position: item.sticker.position,
   funFact: item.sticker.funFact,
+  rarity: item.sticker.rarity,
+isLegend: item.sticker.rarity === "legendary",
 
   // datos que ya usa el stock
   number: item.sticker.stickerNumber,

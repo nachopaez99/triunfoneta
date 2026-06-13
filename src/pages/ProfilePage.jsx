@@ -44,7 +44,7 @@ export function ProfilePage() {
 
   const fullName = user.fullName || "Usuario";
   const areaName = user.area?.name || "Sin área";
-  const hasPhoto = Boolean(mySticker?.photoUrl);
+ /*  const hasPhoto = Boolean(mySticker?.photoUrl); */
 
   function handleImageChange(event) {
     const file = event.target.files[0];
@@ -197,14 +197,14 @@ export function ProfilePage() {
   type="file"
   accept="image/*"
   onChange={handleImageChange}
-  disabled={hasPhoto}
+/*   disabled={hasPhoto} */
 />
 
-{hasPhoto && (
+{/* {hasPhoto && (
   <p className="empty-text">
     Ya cargaste tu foto de figurita. No puede modificarse.
   </p>
-)}
+)} */}
           </div>
 
           <div className="profile-actions">
@@ -212,7 +212,7 @@ export function ProfilePage() {
     className="primary-button"
     type="button"
     onClick={handleSubmitSticker}
-    disabled={isSaving || hasPhoto}
+    disabled={isSaving /* || hasPhoto */}
   >
     {isSaving ? "Guardando..." : "Guardar figurita"}
   </button>

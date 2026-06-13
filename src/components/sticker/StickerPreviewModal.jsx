@@ -6,9 +6,16 @@ export function StickerPreviewModal({ sticker, onClose }) {
   const normalizedSticker = {
     ...sticker,
     photoUrl: sticker.photoUrl || sticker.imageUrl || sticker.avatarUrl || "",
-    nickname: sticker.nickname || sticker.employeeName || "Figurita",
+    nickname:
+  sticker.nickname ||
+  sticker.fullName ||
+  sticker.user?.fullName ||
+  sticker.employeeName ||
+  null,
     area: sticker.area || sticker.department || "Sin área",
     position: sticker.position || "Figurita",
+    rarity: sticker.rarity,
+    isLegend: sticker.rarity === "legend",
   };
 
   return (

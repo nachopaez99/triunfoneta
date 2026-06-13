@@ -24,7 +24,7 @@ console.log("PERSONAL STICKER", sticker);
         <img src={imageUrl} alt={displayName} />
       </div>
 
-      <h3>{displayName}</h3>
+      <h3 className="opened-sticker__name-">{displayName}</h3>
 
       {isLegend && <div className="sticker-legend">Legendaria</div>}
 

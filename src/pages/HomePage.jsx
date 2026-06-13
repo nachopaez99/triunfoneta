@@ -144,13 +144,14 @@ function getProgressColor() {
           <div className="last-pack-grid">
             {lastOpenedPack.map((sticker, index) => (
               <article
-                className={`opened-sticker opened-sticker--${sticker.rarity}`}
+                className={`opened-sticker-home opened-sticker-home-${sticker.rarity}`}
                 key={`${sticker.id}-${index}`}
               >
                 <span>#{sticker.number}</span>
                 <strong>{sticker.employeeName}</strong>
-                <small>
-                  {sticker.rarity === "legendary" ? "Legendaria" : "Común"}
+                <small
+                /* style={{color:"yellow"}} */>
+                  {sticker.rarity === "legend" ? "Legendaria" : ""}
                 </small>
               </article>
             ))}

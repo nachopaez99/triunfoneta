@@ -18,11 +18,11 @@ function safeParseJson(value, fallback) {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() =>
-    safeParseJson(localStorage.getItem(USER_CACHE_KEY), null)
+    safeParseJson(sessionStorage.getItem(USER_CACHE_KEY), null)
   );
 
   const [mySticker, setMySticker] = useState(() =>
-    safeParseJson(localStorage.getItem(MY_STICKER_CACHE_KEY), null)
+    safeParseJson(sessionStorage.getItem(MY_STICKER_CACHE_KEY), null)
   );
 
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY));
@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
     const backendUser = await getCurrentUser();
 
     setUser(backendUser);
-    localStorage.setItem(USER_CACHE_KEY, JSON.stringify(backendUser));
+    sessionStorage.setItem(USER_CACHE_KEY, JSON.stringify(backendUser));
 
     return backendUser;
   }
@@ -44,12 +44,12 @@ export function AuthProvider({ children }) {
       const sticker = await getMySticker();
 
       setMySticker(sticker);
-      localStorage.setItem(MY_STICKER_CACHE_KEY, JSON.stringify(sticker));
+      sessionStorage.setItem(MY_STICKER_CACHE_KEY, JSON.stringify(sticker));
 
       return sticker;
     } catch (error) {
       setMySticker(null);
-      localStorage.removeItem(MY_STICKER_CACHE_KEY);
+      sessionStorage.removeItem(MY_STICKER_CACHE_KEY);
       return null;
     }
   }
@@ -68,8 +68,8 @@ export function AuthProvider({ children }) {
         await refreshMySticker();
       } catch (error) {
         localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(USER_CACHE_KEY);
-        localStorage.removeItem(MY_STICKER_CACHE_KEY);
+        sessionStorage.removeItem(USER_CACHE_KEY);
+        sessionStorage.removeItem(MY_STICKER_CACHE_KEY);
 
         setToken(null);
         setUser(null);
@@ -85,6 +85,9 @@ export function AuthProvider({ children }) {
   async function login(credentials) {
     const response = await loginRequest(credentials);
 
+    sessionStorage.clear();
+
+
     localStorage.setItem(TOKEN_KEY, response.accessToken);
     setToken(response.accessToken);
 
@@ -95,17 +98,18 @@ export function AuthProvider({ children }) {
   }
 
   function logout() {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_CACHE_KEY);
-    localStorage.removeItem(MY_STICKER_CACHE_KEY);
-    localStorage.removeItem("albumData");
-    localStorage.removeItem("lastOpenedPack");
-    localStorage.removeItem("gameConfig");
+  sessionStorage.clear();
 
-    setToken(null);
-    setUser(null);
-    setMySticker(null);
-  }
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("user");
+  localStorage.removeItem("albumData");
+  localStorage.removeItem("lastOpenedPack");
+  localStorage.removeItem("gameConfig");
+  localStorage.removeItem("mySticker");
+
+  setToken(null);
+  setUser(null);
+}
 
   const value = {
     user,

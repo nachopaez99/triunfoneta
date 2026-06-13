@@ -59,7 +59,7 @@ function getProgressColor() {
           <h2>
             {user?.fullName}
           </h2>
-          <p>Ganá puntos, comprá sobres y completá tu álbum corporativo.</p>
+          <p>Ganá puntos, comprá sobres y completá tu álbum de Triunfo.</p>
         </div>
 
         <div className="dashboard-points">

@@ -26,7 +26,7 @@ console.log("PERSONAL STICKER", sticker);
 
       <h3>{displayName}</h3>
 
-      {isLegend && <div className="sticker-legend">LEYENDA</div>}
+      {isLegend && <div className="sticker-legend">Legendaria</div>}
 
       <strong>{sticker?.area || "Sin área"}</strong>
 

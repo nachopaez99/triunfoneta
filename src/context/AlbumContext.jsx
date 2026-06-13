@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { getAreas } from "../services/areaService";
 import { getGameConfig } from "../services/configService";
 import { getUsers } from "../services/userService";
+/* import { getUsers } from "../services/userService"; */
 
 import {
   getAlbumProgress,
@@ -84,13 +85,15 @@ export function AlbumProvider({ children }) {
   const [isConfigLoading, setIsConfigLoading] = useState(false);
 
   const [lastOpenedPack, setLastOpenedPack] = useState(() =>
-    safeParseJson(localStorage.getItem(LAST_PACK_CACHE_KEY), [])
-  );
+  safeParseJson(sessionStorage.getItem(LAST_PACK_CACHE_KEY), [])
+);
 
-  const [gameConfig, setGameConfig] = useState(() =>
-    safeParseJson(localStorage.getItem(GAME_CONFIG_CACHE_KEY), DEFAULT_GAME_CONFIG)
-  );
-
+const [gameConfig, setGameConfig] = useState(() =>
+  safeParseJson(
+    sessionStorage.getItem(GAME_CONFIG_CACHE_KEY),
+    DEFAULT_GAME_CONFIG
+  )
+);
   async function refreshGameConfig() {
   setIsConfigLoading(true);
 
@@ -108,8 +111,10 @@ export function AlbumProvider({ children }) {
     };
 
     setGameConfig(nextGameConfig);
-    localStorage.setItem(GAME_CONFIG_CACHE_KEY, JSON.stringify(nextGameConfig));
-
+    sessionStorage.setItem(
+  GAME_CONFIG_CACHE_KEY,
+  JSON.stringify(nextGameConfig)
+);
     return nextGameConfig;
   } catch (error) {
     console.error("Error cargando config del juego:", error);
@@ -213,7 +218,10 @@ duplicates: enrichCollectionWithUsers(
       setCollection(nextAlbumData.collection);
       setDuplicates(nextAlbumData.duplicates);
 
-      localStorage.setItem(ALBUM_CACHE_KEY, JSON.stringify(nextAlbumData));
+      sessionStorage.setItem(
+  ALBUM_CACHE_KEY,
+  JSON.stringify(nextAlbumData)
+);
     } catch (error) {
       console.error("Error actualizando álbum:", error);
     } finally {
@@ -222,7 +230,7 @@ duplicates: enrichCollectionWithUsers(
   }
 
   useEffect(() => {
-    const cachedAlbum = safeParseJson(localStorage.getItem(ALBUM_CACHE_KEY), null);
+    const cachedAlbum = safeParseJson(sessionStorage.getItem(ALBUM_CACHE_KEY), null);
 
     if (cachedAlbum) {
       setBackendAreas(cachedAlbum.backendAreas || []);
@@ -250,24 +258,28 @@ duplicates: enrichCollectionWithUsers(
   console.log("PACK RESPONSE:", response);
   console.log("PACK STICKERS:", response.stickers);
 
-  const openedStickers = response.stickers.map((sticker) => {
+  const usersResponse = await getUsers();
+const users = usersResponse.data || usersResponse || [];
+
+const openedStickers = response.stickers.map((sticker) => {
+  const user = users.find((item) => item.id === sticker.userId);
+
   const displayName =
     sticker.nickname ||
     sticker.fullName ||
     sticker.user?.fullName ||
-    null;
+    user?.fullName ||
+    "Usuario";
 
   return {
     id: sticker.id,
     nickname: displayName,
-    fullName: sticker.fullName || sticker.user?.fullName || null,
+    fullName: user?.fullName || sticker.fullName || null,
 
     area: sticker.area,
     stickerNumber: sticker.stickerNumber,
     photoUrl: sticker.photoUrl,
     avatarUrl: sticker.avatarUrl,
-    position: sticker.position || null,
-    funFact: sticker.funFact,
 
     number: sticker.stickerNumber,
     employeeName: displayName,
@@ -279,14 +291,15 @@ duplicates: enrichCollectionWithUsers(
       sticker.rarity === "legend" ||
       sticker.rarity === "legendary",
 
-    isOwned: true,
-    isPasted: true,
     quantity: 1,
   };
 });
 
       setLastOpenedPack(openedStickers);
-      localStorage.setItem(LAST_PACK_CACHE_KEY, JSON.stringify(openedStickers));
+      sessionStorage.setItem(
+  LAST_PACK_CACHE_KEY,
+  JSON.stringify(openedStickers)
+);
 
       await refreshAlbumData();
 

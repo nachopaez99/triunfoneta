@@ -47,7 +47,7 @@ function normalizeProdeData(matchesResponse, picksResponse) {
 }
 
 export function ProdePage() {
-  const cachedProde = safeParseJson(localStorage.getItem(PRODE_CACHE_KEY), null);
+  const cachedProde = safeParseJson(sessionStorage.getItem(PRODE_CACHE_KEY), null);
 
   const [matches, setMatches] = useState(cachedProde?.matches || []);
   const [picks, setPicks] = useState(cachedProde?.picks || []);
@@ -73,7 +73,7 @@ export function ProdePage() {
       setPicks(nextProdeData.picks);
       setMatches(nextProdeData.matches);
 
-      localStorage.setItem(PRODE_CACHE_KEY, JSON.stringify(nextProdeData));
+      sessionStorage.setItem(PRODE_CACHE_KEY, JSON.stringify(nextProdeData));
     } catch (error) {
       console.error("Error cargando prode:", error);
 

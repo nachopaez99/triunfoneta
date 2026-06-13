@@ -212,10 +212,26 @@ export function ProfilePage() {
     className="primary-button"
     type="button"
     onClick={handleSubmitSticker}
-    disabled={isSaving /* || hasPhoto */}
+    disabled={/* isSaving  */true/* || hasPhoto */}
   >
     {isSaving ? "Guardando..." : "Guardar figurita"}
-  </button>
+    
+  </button><br />
+  <div>
+  <p 
+style={{
+      color: "#ffb300",
+      background: "rgba(255, 215, 0, 0.08)",
+      border: "1px solid rgba(255, 215, 0, 0.3)",
+      borderRadius: "12px",
+      padding: "12px",
+      textAlign: "center",
+     /*  fontWeight: "600", */
+      marginTop: "12px",
+      lineHeight: "1.5",
+    }}>
+    Deshabilitamos momentaneamente la carga de fotos - <br /><b>Prepará tu foto con la camiseta de argentina con IA</b>
+  </p></div>
 
   
 </div>

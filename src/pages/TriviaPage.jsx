@@ -17,7 +17,7 @@ function safeParseJson(value, fallback) {
 
 export function TriviaPage() {
   const cachedTrivia = safeParseJson(
-    localStorage.getItem(TRIVIA_CACHE_KEY),
+    sessionStorage.getItem(TRIVIA_CACHE_KEY),
     null
   );
 
@@ -43,18 +43,18 @@ export function TriviaPage() {
     const data = await getTriviaQuestion();
 
     if (!data?.question || !Array.isArray(data?.options)) {
-      localStorage.removeItem(TRIVIA_CACHE_KEY);
+      sessionStorage.removeItem(TRIVIA_CACHE_KEY);
       setTriviaData(null);
       setError("No hay preguntas disponibles para responder.");
       return;
     }
 
     setTriviaData(data);
-    localStorage.setItem(TRIVIA_CACHE_KEY, JSON.stringify(data));
+    sessionStorage.setItem(TRIVIA_CACHE_KEY, JSON.stringify(data));
   } catch (error) {
     console.error("Error cargando trivia:", error);
 
-    localStorage.removeItem(TRIVIA_CACHE_KEY);
+    sessionStorage.removeItem(TRIVIA_CACHE_KEY);
     setTriviaData(null);
     setError(error.message || "No hay preguntas disponibles para responder.");
   } finally {
@@ -64,7 +64,7 @@ export function TriviaPage() {
 
 useEffect(() => {
   if (!cachedTrivia?.question || !Array.isArray(cachedTrivia?.options)) {
-    localStorage.removeItem(TRIVIA_CACHE_KEY);
+    sessionStorage.removeItem(TRIVIA_CACHE_KEY);
     loadTrivia();
     return;
   }
@@ -84,7 +84,7 @@ useEffect(() => {
       );
 
       setResult(response);
-      localStorage.removeItem(TRIVIA_CACHE_KEY);
+      sessionStorage.removeItem(TRIVIA_CACHE_KEY);
 
       await refreshUser();
     } catch (error) {

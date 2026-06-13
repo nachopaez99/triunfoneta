@@ -56,8 +56,8 @@ export function getBackendFileUrl(fileUrl) {
 
   return `${BACKEND_URL}${fileUrl}`;
 } */
+import defaultAvatar from "../assets/defaultAvatar.png";
 import { apiRequest } from "./apiClient";
-import defaultAvatar from "../assets/defaultAvatar.png"
 
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -73,7 +73,8 @@ export function getBackendFileUrl(fileUrl) {
   if (
     fileUrl.startsWith("http") ||
     fileUrl.startsWith("blob:") ||
-    fileUrl.startsWith("data:")
+    fileUrl.startsWith("data:") ||
+    fileUrl.startsWith("https")
   ) {
     return fileUrl;
   }

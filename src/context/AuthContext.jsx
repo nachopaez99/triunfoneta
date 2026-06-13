@@ -7,6 +7,7 @@ const AuthContext = createContext(null);
 const TOKEN_KEY = "accessToken";
 const USER_CACHE_KEY = "user";
 const MY_STICKER_CACHE_KEY = "mySticker";
+const INACTIVITY_TIMEOUT = 10 * 60 * 1000
 
 function safeParseJson(value, fallback) {
   try {
@@ -81,6 +82,47 @@ export function AuthProvider({ children }) {
 
     loadSession();
   }, [token]);
+
+  useEffect(() => {
+  if (!isAuthenticated) return;
+
+  let inactivityTimeout;
+
+  const logoutByInactivity = () => {
+    sessionStorage.clear();
+    localStorage.removeItem(TOKEN_KEY);
+
+    setToken(null);
+    setUser(null);
+    setMySticker(null);
+
+    alert("Tu sesión expiró por inactividad.");
+  };
+
+  const resetInactivityTimer = () => {
+    clearTimeout(inactivityTimeout);
+
+    inactivityTimeout = setTimeout(() => {
+      logoutByInactivity();
+    }, INACTIVITY_TIMEOUT);
+  };
+
+  const events = ["mousemove", "mousedown", "keydown", "scroll", "touchstart"];
+
+  events.forEach((event) => {
+    window.addEventListener(event, resetInactivityTimer);
+  });
+
+  resetInactivityTimer();
+
+  return () => {
+    clearTimeout(inactivityTimeout);
+
+    events.forEach((event) => {
+      window.removeEventListener(event, resetInactivityTimer);
+    });
+  };
+}, [isAuthenticated]);
 
   async function login(credentials) {
     const response = await loginRequest(credentials);

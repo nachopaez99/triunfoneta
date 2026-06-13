@@ -25,7 +25,7 @@ export function OpenedStickerCard({ sticker }) {
       </div>
 
       <div>
-        <strong>{displayName}</strong>
+        <strong className="opened-sticker__name-">{displayName}</strong>
         <p>{sticker.department || sticker.area || "Sin área"}</p>
       </div>
 

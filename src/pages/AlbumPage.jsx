@@ -4,7 +4,19 @@ import { StickerStock } from "../components/stock/StickerStock";
 import { StickerPreviewModal } from "../components/sticker/StickerPreviewModal";
 import { getUserImageUrl } from "../services/userService";
 
+
 const AREAS_PER_PAGE = 5;
+
+
+
+
+function normalizeText(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
 
 function normalizeColor(color) {
   if (!color) return "#007A53";
@@ -112,15 +124,20 @@ if (!hasAlbumData) {
                 <div className="album-area-grid">
                   {visibleAreas.map((area) => {
                     const backendArea = backendAreas.find(
-                      (item) => item.name === area.area
-                    );
+  (item) => normalizeText(item.name) === normalizeText(area.area)
+);
 
                     const color = normalizeColor(backendArea?.color);
 
                     const areaCollection = collection.filter(
-                      (item) => item.sticker.area === area.area
-                    );
-
+                            (item) =>
+                              normalizeText(item.sticker?.area) === normalizeText(area.area)
+                          )
+                          .sort(
+                            (a, b) =>
+                              Number(a.sticker?.stickerNumber || 0) -
+                              Number(b.sticker?.stickerNumber || 0)
+                          );
                     return (
                       <article className="album-area-card" key={area.area}>
                         <div
@@ -132,7 +149,7 @@ if (!hasAlbumData) {
 
                         <div className="album-area-card__slots">
                           {Array.from({
-                            length: Math.min(area.totalStickers, 12),
+                            length: area.totalStickers/* Math.min(area.totalStickers, 12) */,
                           }).map((_, index) => {
                             const ownedSticker = areaCollection[index];
                             const sticker = ownedSticker?.sticker;

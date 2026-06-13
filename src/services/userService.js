@@ -66,16 +66,16 @@ const BACKEND_URL = API_URL.replace("/api", "");
 export function getBackendFileUrl(fileUrl) {
   if (!fileUrl) return "";
 
+  if (fileUrl.startsWith("/uploads/")) {
+    return "";
+  }
+
   if (
     fileUrl.startsWith("http") ||
     fileUrl.startsWith("blob:") ||
     fileUrl.startsWith("data:")
   ) {
     return fileUrl;
-  }
-
-  if (fileUrl.startsWith("/uploads/")) {
-    return `${BACKEND_URL}${fileUrl}`;
   }
 
   if (fileUrl.startsWith("/")) {

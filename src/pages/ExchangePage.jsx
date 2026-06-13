@@ -12,7 +12,7 @@ import { getUsers } from "../services/userService";
 import { StickerStock } from "../components/stock/StickerStock";
 
 export function ExchangePage() {
-  /* const { duplicates } = useAlbum(); */
+  const { collection, refreshAlbumData } = useAlbum();
 
   const [users, setUsers] = useState([]);
   const [selectedOffered, setSelectedOffered] = useState(null);
@@ -22,28 +22,45 @@ export function ExchangePage() {
   const [message, setMessage] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const { collection } = useAlbum();
 
   const [sentTrades, setSentTrades] = useState([]);
   const [receivedTrades, setReceivedTrades] = useState([]);
   const [tradeActionLoadingId, setTradeActionLoadingId] = useState(null);
 
-  async function loadTrades() {
-  try {
-    const response = await getMyTrades();
-
-    setSentTrades(response.sent || []);
-    setReceivedTrades(response.received || []);
-  } catch (error) {
-    console.error("Error cargando intercambios:", error);
+  function getStickerName(userSticker) {
+    return (
+      userSticker?.sticker?.fullName ||
+      userSticker?.sticker?.user?.fullName ||
+      userSticker?.sticker?.nickname ||
+      `Figurita #${userSticker?.sticker?.stickerNumber || userSticker?.stickerId || ""}`
+    );
   }
-}
+
+  function getCollectionStickerName(item) {
+    return (
+      item?.sticker?.fullName ||
+      item?.sticker?.user?.fullName ||
+      item?.sticker?.nickname ||
+      `Figurita #${item?.sticker?.stickerNumber || ""}`
+    );
+  }
+
+  async function loadTrades() {
+    try {
+      const response = await getMyTrades();
+
+      setSentTrades(response.sent || []);
+      setReceivedTrades(response.received || []);
+    } catch (error) {
+      console.error("Error cargando intercambios:", error);
+    }
+  }
 
   useEffect(() => {
     async function loadUsers() {
       try {
         const response = await getUsers();
-        setUsers(response.data || []);
+        setUsers(response.data || response || []);
       } catch (error) {
         console.error("Error cargando usuarios:", error);
       }
@@ -54,85 +71,92 @@ export function ExchangePage() {
   }, []);
 
   async function handleSelectUser(userId) {
-  setSelectedUserId(userId);
-  setSelectedRequested(null);
-  setTargetCollection([]);
+    setSelectedUserId(userId);
+    setSelectedRequested(null);
+    setTargetCollection([]);
 
-  if (!userId) return;
+    if (!userId) return;
 
-  try {
-    const response = await getUserCollection(userId, {
-      duplicatesOnly: true,
-      page: 1,
-      limit: 50,
-    });
+    try {
+      const response = await getUserCollection(userId, {
+        duplicatesOnly: true,
+        page: 1,
+        limit: 50,
+      });
 
-    const userDuplicates = response.data || [];
+      const userDuplicates = response.data || [];
 
-    setTargetCollection(userDuplicates);
+      setTargetCollection(userDuplicates);
 
-    if (userDuplicates.length === 0) {
-      setStatusMessage(
-        "Este empleado no tiene figuritas repetidas disponibles para intercambiar."
-      );
-    } else {
-      setStatusMessage("");
+      if (userDuplicates.length === 0) {
+        setStatusMessage(
+          "Este empleado no tiene figuritas repetidas disponibles para intercambiar."
+        );
+      } else {
+        setStatusMessage("");
+      }
+    } catch (error) {
+      console.error("Error cargando colección del usuario:", error);
+      setStatusMessage("No se pudo cargar la colección del empleado.");
     }
-  } catch (error) {
-    console.error("Error cargando colección del usuario:", error);
-    setStatusMessage("No se pudo cargar la colección del empleado.");
   }
-}
-async function handleAcceptTrade(tradeId) {
-  setTradeActionLoadingId(tradeId);
 
-  try {
-    await acceptTrade(tradeId);
-    await loadTrades();
-    setStatusMessage("Intercambio aceptado correctamente.");
-  } catch (error) {
-    console.error("Error aceptando intercambio:", error);
-    setStatusMessage(error.message || "No se pudo aceptar el intercambio.");
-  } finally {
-    setTradeActionLoadingId(null);
+  async function handleAcceptTrade(tradeId) {
+    setTradeActionLoadingId(tradeId);
+
+    try {
+      await acceptTrade(tradeId);
+      await refreshAlbumData();
+      await loadTrades();
+
+      setStatusMessage("Intercambio aceptado correctamente.");
+    } catch (error) {
+      console.error("Error aceptando intercambio:", error);
+      setStatusMessage(error.message || "No se pudo aceptar el intercambio.");
+    } finally {
+      setTradeActionLoadingId(null);
+    }
   }
-}
 
-async function handleRejectTrade(tradeId) {
-  setTradeActionLoadingId(tradeId);
+  async function handleRejectTrade(tradeId) {
+    setTradeActionLoadingId(tradeId);
 
-  try {
-    await rejectTrade(tradeId);
-    await loadTrades();
-    setStatusMessage("Intercambio rechazado.");
-  } catch (error) {
-    console.error("Error rechazando intercambio:", error);
-    setStatusMessage(error.message || "No se pudo rechazar el intercambio.");
-  } finally {
-    setTradeActionLoadingId(null);
+    try {
+      await rejectTrade(tradeId);
+      await loadTrades();
+
+      setStatusMessage("Intercambio rechazado.");
+    } catch (error) {
+      console.error("Error rechazando intercambio:", error);
+      setStatusMessage(error.message || "No se pudo rechazar el intercambio.");
+    } finally {
+      setTradeActionLoadingId(null);
+    }
   }
-}
 
-async function handleCancelTrade(tradeId) {
-  setTradeActionLoadingId(tradeId);
+  async function handleCancelTrade(tradeId) {
+    setTradeActionLoadingId(tradeId);
 
-  try {
-    await cancelTrade(tradeId);
-    await loadTrades();
-    setStatusMessage("Intercambio cancelado.");
-  } catch (error) {
-    console.error("Error cancelando intercambio:", error);
-    setStatusMessage(error.message || "No se pudo cancelar el intercambio.");
-  } finally {
-    setTradeActionLoadingId(null);
+    try {
+      await cancelTrade(tradeId);
+      await loadTrades();
+
+      setStatusMessage("Intercambio cancelado.");
+    } catch (error) {
+      console.error("Error cancelando intercambio:", error);
+      setStatusMessage(error.message || "No se pudo cancelar el intercambio.");
+    } finally {
+      setTradeActionLoadingId(null);
+    }
   }
-}
 
   async function handleCreateTrade(event) {
     event.preventDefault();
 
     if (!selectedOffered || !selectedRequested || !selectedUserId) {
-      setStatusMessage("Seleccioná una figurita para ofrecer, un usuario y una figurita para pedir.");
+      setStatusMessage(
+        "Seleccioná una figurita para ofrecer, un usuario y una figurita para pedir."
+      );
       return;
     }
 
@@ -146,6 +170,7 @@ async function handleCancelTrade(tradeId) {
         requestedUserStickerId: selectedRequested.id,
         message,
       });
+
       await loadTrades();
 
       setStatusMessage("Oferta de intercambio publicada correctamente.");
@@ -161,22 +186,18 @@ async function handleCancelTrade(tradeId) {
       setLoading(false);
     }
   }
+
   const duplicateStickers = collection.filter((item) => item.quantity > 1);
-  
-const stockStickers = collection.map((item) => ({
+
+  const stockStickers = collection.map((item) => ({
     id: item.sticker.id,
     number: item.sticker.stickerNumber,
-    employeeName: item.sticker.nickname,
+    employeeName: getCollectionStickerName(item),
     department: item.sticker.area,
-    position: "Figurita",
     quantity: item.quantity,
     isOwned: item.quantity > 0,
-    /* isPasted: item.quantity > 0, */
   }));
 
-  useEffect(() => {
-  console.log("SELECTED OFFERED", selectedRequested);
-}, [selectedRequested]);
   return (
     <section className="exchange-page">
       <div className="exchange-main">
@@ -208,7 +229,7 @@ const stockStickers = collection.map((item) => ({
                   onClick={() => setSelectedOffered(item)}
                 >
                   <span>#{item.sticker.stickerNumber}</span>
-                  <strong>{item.sticker.nickname}</strong>
+                  <strong>{getCollectionStickerName(item)}</strong>
                   <small>{item.sticker.area} · x{item.quantity}</small>
                 </button>
               ))}
@@ -231,32 +252,32 @@ const stockStickers = collection.map((item) => ({
 
           <h4>3. Elegí la figurita que querés pedir</h4>
 
-         {targetCollection.length === 0 ? (
-  <p className="empty-text">
-    {selectedUserId
-      ? "Este empleado no tiene figuritas repetidas disponibles para pedir."
-      : "Seleccioná un empleado para ver sus repetidas."}
-  </p>
-) : (
-  <div className="my-repeated-grid">
-    {targetCollection.map((item) => (
-      <button
-        type="button"
-        className={
-          selectedRequested?.id === item.id
-            ? "repeated-card repeated-card--selected"
-            : "repeated-card"
-        }
-        key={item.id}
-        onClick={() => setSelectedRequested(item)}
-      >
-        <span>#{item.sticker.stickerNumber}</span>
-        <strong>{item.sticker.nickname}</strong>
-        <small>{item.sticker.area} · x{item.quantity}</small>
-      </button>
-    ))}
-  </div>
-)}
+          {targetCollection.length === 0 ? (
+            <p className="empty-text">
+              {selectedUserId
+                ? "Este empleado no tiene figuritas repetidas disponibles para pedir."
+                : "Seleccioná un empleado para ver sus repetidas."}
+            </p>
+          ) : (
+            <div className="my-repeated-grid">
+              {targetCollection.map((item) => (
+                <button
+                  type="button"
+                  className={
+                    selectedRequested?.id === item.id
+                      ? "repeated-card repeated-card--selected"
+                      : "repeated-card"
+                  }
+                  key={item.id}
+                  onClick={() => setSelectedRequested(item)}
+                >
+                  <span>#{item.sticker.stickerNumber}</span>
+                  <strong>{getCollectionStickerName(item)}</strong>
+                  <small>{item.sticker.area} · x{item.quantity}</small>
+                </button>
+              ))}
+            </div>
+          )}
 
           <label htmlFor="trade-message">Mensaje opcional</label>
           <textarea
@@ -272,109 +293,103 @@ const stockStickers = collection.map((item) => ({
             {loading ? "Publicando..." : "Publicar oferta"}
           </button>
         </form>
+
         <section className="exchange-list">
-  <h3>Mis intercambios</h3>
+          <h3>Mis intercambios</h3>
 
-  <h4>Recibidos</h4>
+          <h4>Recibidos</h4>
 
-{receivedTrades.length === 0 ? (
-  <p className="empty-text">No tenés intercambios recibidos.</p>
-) : (
-  <div className="my-repeated-grid">
-    {receivedTrades.map((trade) => (
-      <article className="repeated-card" key={trade.id}>
-        <span>
-          De:{" "}
-          {trade.fromUser?.fullName ||
-            trade.createdByUser?.fullName ||
-            trade.user?.fullName ||
-            "Usuario"}
-        </span>
+          {receivedTrades.length === 0 ? (
+            <p className="empty-text">No tenés intercambios recibidos.</p>
+          ) : (
+            <div className="my-repeated-grid">
+              {receivedTrades.map((trade) => (
+                <article className="repeated-card" key={trade.id}>
+                  <span>
+                    De:{" "}
+                    {trade.fromUser?.fullName ||
+                      trade.createdByUser?.fullName ||
+                      trade.user?.fullName ||
+                      "Usuario"}
+                  </span>
 
-        <strong>
-          Te ofrecen: {trade.offeredUserSticker?.sticker?.nickname || "Figurita"}
-        </strong>
+                  <strong>
+                    Te ofrecen: {getStickerName(trade.offeredUserSticker)}
+                  </strong>
 
-        <small>
-          Piden: {trade.requestedUserSticker?.sticker?.nickname || "Figurita"}
-        </small>
+                  <small>
+                    Piden: {getStickerName(trade.requestedUserSticker)}
+                  </small>
 
-        {trade.message && <p>{trade.message}</p>}
+                  {trade.message && <p>{trade.message}</p>}
 
-        <small>Estado: {trade.status}</small>
+                  <small>Estado: {trade.status}</small>
 
-        {trade.status?.toLowerCase() === "pending" && (
-          <div className="exchange-actions">
-  <button
-    className="exchange-btn exchange-btn--success"
-    type="button"
-    disabled={tradeActionLoadingId === trade.id}
-    onClick={() => handleAcceptTrade(trade.id)}
-  >
-    Aceptar
-  </button>
+                  {trade.status?.toLowerCase() === "pending" && (
+                    <div className="exchange-actions">
+                      <button
+                        className="exchange-btn exchange-btn--success"
+                        type="button"
+                        disabled={tradeActionLoadingId === trade.id}
+                        onClick={() => handleAcceptTrade(trade.id)}
+                      >
+                        Aceptar
+                      </button>
 
-  <button
-    className="exchange-btn exchange-btn--danger"
-    type="button"
-    disabled={tradeActionLoadingId === trade.id}
-    onClick={() => handleRejectTrade(trade.id)}
-  >
-    Rechazar
-  </button>
-</div>
-        )}
-      </article>
-    ))}
-  </div>
-)}
-
-  <h4>Enviados</h4>
-
-  {sentTrades.length === 0 ? (
-    <p className="empty-text">
-      No tenés intercambios enviados.
-    </p>
-  ) : (
-    <div className="my-repeated-grid">
-      {sentTrades.map((trade) => (
-        <article className="repeated-card" key={trade.id}>
-          <strong>
-            Ofrecés:{" "}
-            {trade.offeredUserSticker?.sticker?.nickname}
-          </strong>
-
-          <small>
-            Pedís:{" "}
-            {trade.requestedUserSticker?.sticker?.nickname}
-          </small>
-
-          <small>
-            Para: {trade.toUser?.fullName}
-          </small>
-
-          <small>
-            Estado: {trade.status}
-          </small>
-
-          {trade.status?.toLowerCase() === "pending" && (
-            <button
-  className="exchange-btn exchange-btn--danger"
-  type="button"
-  disabled={tradeActionLoadingId === trade.id}
-  onClick={() => handleCancelTrade(trade.id)}
->
-  Cancelar
-</button>
+                      <button
+                        className="exchange-btn exchange-btn--danger"
+                        type="button"
+                        disabled={tradeActionLoadingId === trade.id}
+                        onClick={() => handleRejectTrade(trade.id)}
+                      >
+                        Rechazar
+                      </button>
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
           )}
-        </article>
-      ))}
-    </div>
-  )}
-</section>
+
+          <h4>Enviados</h4>
+
+          {sentTrades.length === 0 ? (
+            <p className="empty-text">No tenés intercambios enviados.</p>
+          ) : (
+            <div className="my-repeated-grid">
+              {sentTrades.map((trade) => (
+                <article className="repeated-card" key={trade.id}>
+                  <strong>
+                    Ofrecés: {getStickerName(trade.offeredUserSticker)}
+                  </strong>
+
+                  <small>
+                    Pedís: {getStickerName(trade.requestedUserSticker)}
+                  </small>
+
+                  <small>Para: {trade.toUser?.fullName || "Usuario"}</small>
+
+                  <small>Estado: {trade.status}</small>
+
+                  {trade.status?.toLowerCase() === "pending" && (
+                    <button
+                      className="exchange-btn exchange-btn--danger"
+                      type="button"
+                      disabled={tradeActionLoadingId === trade.id}
+                      onClick={() => handleCancelTrade(trade.id)}
+                    >
+                      Cancelar
+                    </button>
+                  )}
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
+
       <div>
-      <StickerStock stickers={stockStickers} />
+        <StickerStock stickers={stockStickers} />
       </div>
     </section>
   );

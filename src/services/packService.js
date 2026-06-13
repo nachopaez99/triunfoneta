@@ -11,11 +11,11 @@ export function getAlbumProgress() {
 }
 
 export function getMyCollection() {
-  return apiRequest("/packs/collection/me");
+  return apiRequest("/packs/collection/me?page=1&limit=1000");
 }
 
 export function getMyDuplicates() {
-  return apiRequest("/packs/collection/me/duplicates");
+  return apiRequest("/packs/collection/me/duplicates?page=1&limit=1000");
 }
 
 export function getMyDuplicateCollection() {

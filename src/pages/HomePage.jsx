@@ -20,7 +20,7 @@ const {
   progress,
   pastedStickers,
   totalStickers,
-  /* newStickers, */
+ isAlbumLoading,
   repeatedStickers,
   packCost,
   stickersPerPack,
@@ -50,7 +50,13 @@ function getProgressColor() {
     ? variable ="progressYellow" : variable ="progressGreen"
     return variable 
 }
-/* console.log(getProgressColor()); */
+if (isAlbumLoading && totalStickers === 0) {
+  return (
+    <section className="dashboard-page">
+      <p>Cargando datos del álbum...</p>
+    </section>
+  );
+}
   return (
     <section className="dashboard-page">
       <header className="dashboard-hero">

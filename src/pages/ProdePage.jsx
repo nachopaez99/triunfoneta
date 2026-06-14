@@ -29,19 +29,24 @@ function normalizeProdeData(matchesResponse, picksResponse) {
       );
 
       return {
-        ...match,
-        prediction: {
-          homeScore:
-            existingPick?.predictedHome ??
-            existingPick?.homeScore ??
-            "",
-          awayScore:
-            existingPick?.predictedAway ??
-            existingPick?.awayScore ??
-            "",
-        },
-        hasPick: Boolean(existingPick),
-      };
+  ...match,
+  prediction: {
+    homeScore:
+      existingPick?.predictedHome ??
+      existingPick?.homeScore ??
+      "",
+    awayScore:
+      existingPick?.predictedAway ??
+      existingPick?.awayScore ??
+      "",
+  },
+  hasPick: Boolean(existingPick),
+  pointsEarned:
+    existingPick?.pointsEarned ??
+    existingPick?.points ??
+    match.pointsEarned ??
+    0,
+};
     }),
   };
 }

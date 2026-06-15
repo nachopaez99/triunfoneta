@@ -116,13 +116,17 @@ export function createMySticker(payload) {
 export async function uploadMyStickerPhoto(file) {
   const token = localStorage.getItem("accessToken");
 
+  if (!token || token.split(".").length !== 3) {
+    throw new Error("Sesión inválida. Cerrá sesión e iniciá nuevamente.");
+  }
+
   const formData = new FormData();
   formData.append("file", file);
 
   const response = await fetch(`${API_URL}/users/me/sticker/photo`, {
     method: "POST",
     headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      Authorization: `Bearer ${token}`,
     },
     body: formData,
   });

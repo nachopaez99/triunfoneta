@@ -17,7 +17,7 @@ const isLegend =
     sticker?.photoUrl || sticker?.imageUrl,
     sticker?.avatarUrl
   );
-console.log("PERSONAL STICKER", sticker);
+/* console.log("PERSONAL STICKER", sticker); */
   return (
     <div className="personal-sticker-card">
       <div className="personal-sticker-image">

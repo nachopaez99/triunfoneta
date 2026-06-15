@@ -44,7 +44,7 @@ export function ProfilePage() {
 
   const fullName = user.fullName || "Usuario";
   const areaName = user.area?.name || "Sin área";
- /*  const hasPhoto = Boolean(mySticker?.photoUrl); */
+/*   const hasPhoto = Boolean(mySticker?.photoUrl); */
 
   function handleImageChange(event) {
     const file = event.target.files[0];
@@ -197,7 +197,7 @@ export function ProfilePage() {
   type="file"
   accept="image/*"
   onChange={handleImageChange}
-/*   disabled={hasPhoto} */
+  /* disabled={hasPhoto} */
 />
 
 {/* {hasPhoto && (
@@ -212,26 +212,11 @@ export function ProfilePage() {
     className="primary-button"
     type="button"
     onClick={handleSubmitSticker}
-    disabled={/* isSaving  */true/* || hasPhoto */}
+/*     disabled={isSaving || hasPhoto} */
   >
     {isSaving ? "Guardando..." : "Guardar figurita"}
     
-  </button><br />
-  <div>
-  <p 
-style={{
-      color: "#ffb300",
-      background: "rgba(255, 215, 0, 0.08)",
-      border: "1px solid rgba(255, 215, 0, 0.3)",
-      borderRadius: "12px",
-      padding: "12px",
-      textAlign: "center",
-     /*  fontWeight: "600", */
-      marginTop: "12px",
-      lineHeight: "1.5",
-    }}>
-    Deshabilitamos momentaneamente la carga de fotos - <br /><b>Prepará tu foto con la camiseta de argentina con IA</b>
-  </p></div>
+  </button>
 
   
 </div>

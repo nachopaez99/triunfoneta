@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { formatBannerMessage } from "./bannerFormatter.js";
+import { formatBannerMessage } from "./bannerFormatter";
 
 const READ_DELAY_SECONDS = 10;
 

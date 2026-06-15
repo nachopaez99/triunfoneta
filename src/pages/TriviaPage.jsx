@@ -5,7 +5,21 @@ import {
 } from "../services/triviaService";
 import { useAuth } from "../context/AuthContext";
 
+import { getMyTriviaHistory } from "../services/triviaService";
+
 const TRIVIA_CACHE_KEY = "currentTrivia";
+const DAILY_TRIVIA_LIMIT = 15;
+
+function isToday(dateString) {
+  const date = new Date(dateString);
+  const today = new Date();
+
+  return (
+    date.getFullYear() === today.getFullYear() &&
+    date.getMonth() === today.getMonth() &&
+    date.getDate() === today.getDate()
+  );
+}
 
 function safeParseJson(value, fallback) {
   try {
@@ -40,6 +54,20 @@ export function TriviaPage() {
   setSelectedOptionId(null);
 
   try {
+    const historyResponse = await getMyTriviaHistory();
+const history = historyResponse.data || historyResponse || [];
+
+const answeredToday = history.filter((item) =>
+  isToday(item.answeredAt)
+).length;
+
+if (answeredToday >= DAILY_TRIVIA_LIMIT) {
+  setTriviaData(null);
+  setError(
+    `Ya respondiste las ${DAILY_TRIVIA_LIMIT} preguntas disponibles por hoy. Volvé mañana.`
+  );
+  return;
+}
     const data = await getTriviaQuestion();
 
     if (!data?.question || !Array.isArray(data?.options)) {

@@ -10,6 +10,7 @@ import { ProdePage } from "../pages/ProdePage";
 import { ExchangePage } from "../pages/ExchangePage";
 import { ProfilePage } from "../pages/ProfilePage";
 import { InfoPage } from "../pages/InfoPage";
+import { AdminBannersPage } from "../pages/AdminBannersPage";
 
 
 function ProtectedRoute({ children }) {
@@ -21,6 +22,24 @@ function ProtectedRoute({ children }) {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
+function AdminRoute({ children }) {
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <p>Cargando...</p>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user?.role?.toLowerCase() !== "admin") {
+    return <Navigate to="/" replace />;
   }
 
   return children;
@@ -59,6 +78,8 @@ export function AppRouter() {
             <AppLayout />
           </ProtectedRoute>
         }
+
+        
       >
         <Route index element={<HomePage />} />
         <Route path="album" element={<AlbumPage />} />
@@ -66,7 +87,17 @@ export function AppRouter() {
         <Route path="prode" element={<ProdePage />} />
         <Route path="intercambio" element={<ExchangePage />} />
         <Route path="perfil" element={<ProfilePage />} />
-        <Route path="/info" element={<InfoPage/>} />
+        <Route path="info" element={<InfoPage/>} />
+
+<Route
+  path="admin/banners"
+  element={
+    <AdminRoute>
+      <AdminBannersPage />
+    </AdminRoute>
+  }
+/>
+
       </Route>
     </Routes>
   );

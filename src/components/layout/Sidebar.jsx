@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import logo from "../../assets/logo-blanco-bandera.png";
 
 const menuItems = [
@@ -9,24 +10,32 @@ const menuItems = [
   { path: "/intercambio", label: "Intercambio🤝" },
   { path: "/perfil", label: "Perfil👤" },
   { path: "/info", label: "¿Cómo juego? ❓" },
+];
 
-  
+const adminMenuItems = [
+  { path: "/admin/banners", label: "Pop Ups📢" },
 ];
 
 export function Sidebar() {
+  const { user } = useAuth();
+  const isAdmin = user?.role?.toLowerCase() === "admin";
+
+  const visibleMenuItems = isAdmin
+    ? [...menuItems, ...adminMenuItems]
+    : menuItems;
+
   return (
     <aside className="sidebar">
-    
       <div className="sidebar-logo">
-          <div className="logo-wrapper">
-            <img src={logo} alt="logo de triunfo" className="logo-image" />
-          </div>
-          
-          <h1>Menú</h1>
+        <div className="logo-wrapper">
+          <img src={logo} alt="logo de triunfo" className="logo-image" />
+        </div>
+
+        <h1>Menú</h1>
       </div>
 
       <nav className="sidebar-nav">
-        {menuItems.map((item) => (
+        {visibleMenuItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}

@@ -10,3 +10,7 @@ export function answerTriviaQuestion(questionId, selectedOptionId) {
     body: JSON.stringify({ selectedOptionId: Number(selectedOptionId) }),
   });
 }
+
+export function getMyTriviaHistory() {
+  return apiRequest("/trivia/history/me");
+}

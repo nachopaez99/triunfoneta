@@ -3,7 +3,7 @@ import {
   createAdminBanner,
   getAdminBanners,
 } from "../services/bannerService";
-import { formatBannerMessage } from "../components/banner/bannerFormatter";
+import { formatBannerMessage } from "../components/banner/bannerFormatter.js";
 
 
 const INITIAL_FORM = {

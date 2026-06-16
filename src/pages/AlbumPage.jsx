@@ -46,6 +46,18 @@ export function AlbumPage() {
   const hasAlbumData = albumProgress.length > 0;
   const isCoverPage = currentPage === 0;
 
+  console.log("backendAreas", backendAreas);
+console.log("albumProgress", albumProgress);
+console.log("collection", collection);
+
+console.log(
+  "areas estrategia/marketing",
+  backendAreas.filter((area) =>
+    area?.name?.toLowerCase().includes("estrategia") ||
+    area?.name?.toLowerCase().includes("marketing")
+  )
+);
+
   const visibleAreas = isCoverPage
     ? []
     : albumProgress.slice(

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAlbum } from "../context/AlbumContext";
 import {
   createTrade,
@@ -27,22 +27,36 @@ export function ExchangePage() {
   const [receivedTrades, setReceivedTrades] = useState([]);
   const [tradeActionLoadingId, setTradeActionLoadingId] = useState(null);
 
-  function getStickerName(userSticker) {
-    return (
-      userSticker?.sticker?.fullName ||
-      userSticker?.sticker?.user?.fullName ||
-      userSticker?.sticker?.nickname ||
-      `Figurita #${userSticker?.sticker?.stickerNumber || userSticker?.stickerId || ""}`
-    );
-  }
+  const usersById = useMemo(() => {
+    return new Map(users.map((user) => [Number(user.id), user]));
+  }, [users]);
 
-  function getCollectionStickerName(item) {
-    return (
-      item?.sticker?.fullName ||
-      item?.sticker?.user?.fullName ||
-      item?.sticker?.nickname ||
-      `Figurita #${item?.sticker?.stickerNumber || ""}`
-    );
+  function getStickerName(userSticker) {
+  const fullName =
+    userSticker?.sticker?.fullName ||
+    users.find(
+      (user) => Number(user.id) === Number(userSticker?.sticker?.userId)
+    )?.fullName;
+
+  return (
+    userSticker?.sticker?.nickname ||
+    fullName ||
+    `Figurita #${userSticker?.sticker?.stickerNumber || userSticker?.stickerId || ""}`
+  );
+}
+
+  function enrichCollectionWithUserFullName(items) {
+    return items.map((item) => {
+      const stickerUser = usersById.get(Number(item?.sticker?.userId));
+
+      return {
+        ...item,
+        sticker: {
+          ...item.sticker,
+          fullName: item?.sticker?.fullName || stickerUser?.fullName || "",
+        },
+      };
+    });
   }
 
   async function loadTrades() {
@@ -85,8 +99,9 @@ export function ExchangePage() {
       });
 
       const userDuplicates = response.data || [];
+      const enrichedUserDuplicates = enrichCollectionWithUserFullName(userDuplicates);
 
-      setTargetCollection(userDuplicates);
+      setTargetCollection(enrichedUserDuplicates);
 
       if (userDuplicates.length === 0) {
         setStatusMessage(
@@ -192,7 +207,7 @@ export function ExchangePage() {
   const stockStickers = collection.map((item) => ({
     id: item.sticker.id,
     number: item.sticker.stickerNumber,
-    employeeName: getCollectionStickerName(item),
+    employeeName: getStickerName(item),
     department: item.sticker.area,
     quantity: item.quantity,
     isOwned: item.quantity > 0,
@@ -229,7 +244,7 @@ export function ExchangePage() {
                   onClick={() => setSelectedOffered(item)}
                 >
                   <span>#{item.sticker.stickerNumber}</span>
-                  <strong>{getCollectionStickerName(item)}</strong>
+                  <strong>{getStickerName(item)}</strong>
                   <small>{item.sticker.area} · x{item.quantity}</small>
                 </button>
               ))}
@@ -272,7 +287,7 @@ export function ExchangePage() {
                   onClick={() => setSelectedRequested(item)}
                 >
                   <span>#{item.sticker.stickerNumber}</span>
-                  <strong>{getCollectionStickerName(item)}</strong>
+                  <strong>{getStickerName(item)}</strong>
                   <small>{item.sticker.area} · x{item.quantity}</small>
                 </button>
               ))}

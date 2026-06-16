@@ -51,6 +51,17 @@ console.log("albumProgress", albumProgress);
 console.log("collection", collection);
 
 console.log(
+  "albumProgress estrategia/marketing",
+  albumProgress.filter(
+    (item) =>
+      Number(item?.areaId) === 11 ||
+      Number(item?.id) === 11 ||
+      item?.name?.includes("Estrategia") ||
+      item?.areaName?.includes("Estrategia")
+  )
+);
+
+console.log(
   "areas estrategia/marketing",
   backendAreas.filter((area) =>
     area?.name?.toLowerCase().includes("estrategia") ||

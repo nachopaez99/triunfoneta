@@ -42,8 +42,41 @@ export function AlbumPage() {
   const [selectedSticker, setSelectedSticker] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
 
-  const totalPages = Math.ceil(albumProgress.length / AREAS_PER_PAGE);
-  const hasAlbumData = albumProgress.length > 0;
+  const normalizedAlbumProgress = Object.values(
+  albumProgress.reduce((acc, area) => {
+    const areaName = String(area.area || "").trim().replace(/\s+/g, " ");
+
+    if (!acc[areaName]) {
+      acc[areaName] = {
+        ...area,
+        area: areaName,
+      };
+      return acc;
+    }
+
+    acc[areaName] = {
+      ...acc[areaName],
+      totalStickers: Math.max(
+        Number(acc[areaName].totalStickers || 0),
+        Number(area.totalStickers || 0)
+      ),
+      ownedStickers: Math.max(
+        Number(acc[areaName].ownedStickers || 0),
+        Number(area.ownedStickers || 0)
+      ),
+      percentage: Math.max(
+        Number(acc[areaName].percentage || 0),
+        Number(area.percentage || 0)
+      ),
+      isComplete: acc[areaName].isComplete || area.isComplete,
+    };
+
+    return acc;
+  }, {})
+);
+
+const totalPages = Math.ceil(normalizedAlbumProgress.length / AREAS_PER_PAGE);
+const hasAlbumData = normalizedAlbumProgress.length > 0;
   const isCoverPage = currentPage === 0;
 
   console.log("backendAreas", backendAreas);
@@ -69,12 +102,12 @@ console.log(
   )
 );
 
-  const visibleAreas = isCoverPage
-    ? []
-    : albumProgress.slice(
-        (currentPage - 1) * AREAS_PER_PAGE,
-        currentPage * AREAS_PER_PAGE
-      );
+const visibleAreas = isCoverPage
+  ? []
+  : normalizedAlbumProgress.slice(
+      (currentPage - 1) * AREAS_PER_PAGE,
+      currentPage * AREAS_PER_PAGE
+    );
 
   function goToPreviousPage() {
     setCurrentPage((page) => Math.max(page - 1, 0));
@@ -162,7 +195,7 @@ if (!hasAlbumData) {
                               Number(b.sticker?.stickerNumber || 0)
                           );
                     return (
-                      <article className="album-area-card" key={area.area}>
+                      <article className="album-area-card" key={normalizeText(area.area)}>
                         <div
                           className="album-area-card__header"
                           style={{ backgroundColor: color }}

@@ -12,5 +12,5 @@ export function createProdePick(matchId, payload) {
 }
 
 export function getMyProdePicks() {
-  return apiRequest("/prode/picks/me");
+  return apiRequest("/prode/picks/me?page=1&limit=1000");
 }

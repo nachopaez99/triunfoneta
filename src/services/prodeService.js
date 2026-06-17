@@ -1,7 +1,7 @@
 import { apiRequest } from "./apiClient";
 
 export function getProdeMatches() {
-  return apiRequest("/prode/matches");
+  return apiRequest("/prode/matches?page=1&limit=1000");
 }
 
 export function createProdePick(matchId, payload) {

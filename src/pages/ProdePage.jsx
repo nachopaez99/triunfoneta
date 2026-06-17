@@ -73,6 +73,9 @@ export function ProdePage() {
         getMyProdePicks(),
       ]);
 
+      console.log("matchesResponse", matchesResponse);
+console.log("picksResponse", picksResponse);
+
       const nextProdeData = normalizeProdeData(matchesResponse, picksResponse);
 
       setPicks(nextProdeData.picks);

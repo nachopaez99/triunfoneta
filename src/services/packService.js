@@ -21,3 +21,7 @@ export function getMyDuplicates() {
 export function getMyDuplicateCollection() {
   return apiRequest("/packs/collection/me?duplicatesOnly=true");
 }
+
+export function getAlbumSections() {
+  return apiRequest("/album/me/section");
+}

@@ -80,24 +80,13 @@
 
 }
 
-.personal-sticker-image {
-  height: 230px;
-  border-radius: 20px;
-  background: #eeeeee;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  margin-bottom: 18px;
-  color: var(--color-muted);
-  font-size: 42px;
-  font-weight: 900;
-}
 
+/* 
 .personal-sticker-image img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-}
+
+} */
 
 .personal-sticker-card h3 {
   margin-bottom: 6px;

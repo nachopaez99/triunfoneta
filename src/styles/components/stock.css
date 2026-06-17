@@ -206,3 +206,11 @@
 .stock-item:hover {
   transform: translateY(-1px);
 }
+
+.repeated-card-request-ylt  {
+  color: rgb(223, 193, 42);
+}
+
+.repeated-card-request-nlt {
+  color: red;
+}

@@ -116,22 +116,38 @@ export function ExchangePage() {
     }
   }
 
-  async function handleAcceptTrade(tradeId) {
-    setTradeActionLoadingId(tradeId);
+ async function handleAcceptTrade(tradeId) {
+  const trade = receivedTrades.find((item) => item.id === tradeId);
 
-    try {
-      await acceptTrade(tradeId);
-      await refreshAlbumData();
-      await loadTrades();
+  const requestedStickerId = trade?.requestedUserSticker?.sticker?.id;
 
-      setStatusMessage("Intercambio aceptado correctamente.");
-    } catch (error) {
-      console.error("Error aceptando intercambio:", error);
-      setStatusMessage(error.message || "No se pudo aceptar el intercambio.");
-    } finally {
-      setTradeActionLoadingId(null);
-    }
+  const availableSticker = collection.find(
+    (item) =>
+      Number(item?.sticker?.id) === Number(requestedStickerId) &&
+      Number(item?.quantity || 0) > 1
+  );
+
+  if (!availableSticker) {
+    alert("Esa figurita ya no está disponible para intercambio.");
+    await loadTrades();
+    return;
   }
+
+  setTradeActionLoadingId(tradeId);
+
+  try {
+    await acceptTrade(tradeId);
+    await refreshAlbumData();
+    await loadTrades();
+
+    setStatusMessage("Intercambio aceptado correctamente.");
+  } catch (error) {
+    console.error("Error aceptando intercambio:", error);
+    setStatusMessage(error.message || "No se pudo aceptar el intercambio.");
+  } finally {
+    setTradeActionLoadingId(null);
+  }
+}
 
   async function handleRejectTrade(tradeId) {
     setTradeActionLoadingId(tradeId);
@@ -213,6 +229,16 @@ export function ExchangePage() {
     isOwned: item.quantity > 0,
   }));
 
+  function getRequestedStickerStatus(item) {
+  const alreadyOwned = collection.some(
+    (ownedItem) =>
+      Number(ownedItem?.sticker?.id) === Number(item?.sticker?.id) &&
+      Number(ownedItem?.quantity || 0) > 0
+  );
+
+  return alreadyOwned ? "Ya la tenés" : "Te falta";
+}
+
   return (
     <section className="exchange-page">
       <div className="exchange-main">
@@ -245,7 +271,7 @@ export function ExchangePage() {
                 >
                   <span>#{item.sticker.stickerNumber}</span>
                   <strong>{getStickerName(item)}</strong>
-                  <small>{item.sticker.area} · x{item.quantity}</small>
+                  <small>{item.sticker.area} · x{item.quantity-1}</small>
                 </button>
               ))}
             </div>
@@ -288,7 +314,9 @@ export function ExchangePage() {
                 >
                   <span>#{item.sticker.stickerNumber}</span>
                   <strong>{getStickerName(item)}</strong>
-                  <small>{item.sticker.area} · x{item.quantity}</small>
+                  <small>
+  {item.sticker.area} · x{item.quantity -1} · <p className={getRequestedStickerStatus(item) == "Ya la tenés"? "repeated-card-request-ylt" : "repeated-card-request-nlt"}> {getRequestedStickerStatus(item)}</p>
+</small>
                 </button>
               ))}
             </div>

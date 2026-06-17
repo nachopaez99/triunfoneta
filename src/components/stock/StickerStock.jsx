@@ -31,7 +31,7 @@ export function StickerStock({ stickers }) {
                 <small>{sticker.department}</small>
               </div>
 
-              <strong>x{sticker.quantity}</strong>
+              <strong>x{sticker.quantity-1}</strong>
             </div>
           ))
         )}

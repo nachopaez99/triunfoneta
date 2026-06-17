@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAlbum } from "../context/AlbumContext";
 import { StickerStock } from "../components/stock/StickerStock";
 import { StickerPreviewModal } from "../components/sticker/StickerPreviewModal";
 import { getUserImageUrl } from "../services/userService";
+import { getAlbumSections } from "../services/packService";
 
 
 const AREAS_PER_PAGE = 5;
@@ -41,6 +42,20 @@ export function AlbumPage() {
   const { albumProgress, collection, pasteSticker, backendAreas } = useAlbum();
   const [selectedSticker, setSelectedSticker] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
+  const [albumSections, setAlbumSections] = useState([]);
+
+useEffect(() => {
+  async function loadAlbumSections() {
+    try {
+      const sections = await getAlbumSections();
+      setAlbumSections(Array.isArray(sections) ? sections : []);
+    } catch (error) {
+      console.error("Error cargando secciones del álbum:", error);
+    }
+  }
+
+  loadAlbumSections();
+}, []);
 
   const normalizedAlbumProgress = Object.values(
   albumProgress.reduce((acc, area) => {
@@ -79,28 +94,9 @@ const totalPages = Math.ceil(normalizedAlbumProgress.length / AREAS_PER_PAGE);
 const hasAlbumData = normalizedAlbumProgress.length > 0;
   const isCoverPage = currentPage === 0;
 
-  console.log("backendAreas", backendAreas);
-console.log("albumProgress", albumProgress);
-console.log("collection", collection);
 
-console.log(
-  "albumProgress estrategia/marketing",
-  albumProgress.filter(
-    (item) =>
-      Number(item?.areaId) === 11 ||
-      Number(item?.id) === 11 ||
-      item?.name?.includes("Estrategia") ||
-      item?.areaName?.includes("Estrategia")
-  )
-);
 
-console.log(
-  "areas estrategia/marketing",
-  backendAreas.filter((area) =>
-    area?.name?.toLowerCase().includes("estrategia") ||
-    area?.name?.toLowerCase().includes("marketing")
-  )
-);
+
 
 const visibleAreas = isCoverPage
   ? []
@@ -146,6 +142,7 @@ if (!hasAlbumData) {
     </section>
   );
 }
+
   return (
     <section className="album-page">
       <div className="album-main">
@@ -185,15 +182,39 @@ if (!hasAlbumData) {
 
                     const color = normalizeColor(backendArea?.color);
 
-                    const areaCollection = collection.filter(
-                            (item) =>
-                              normalizeText(item.sticker?.area) === normalizeText(area.area)
-                          )
-                          .sort(
-                            (a, b) =>
-                              Number(a.sticker?.stickerNumber || 0) -
-                              Number(b.sticker?.stickerNumber || 0)
-                          );
+                    const section = albumSections.find(
+  (item) => normalizeText(item.area) === normalizeText(area.area)
+);
+
+const sectionStickers = section?.stickers || [];
+
+const areaCollection = sectionStickers.length
+  ? sectionStickers.map((sectionItem) => {
+      if (!sectionItem.owned) {
+        return null;
+      }
+
+      return (
+        collection.find(
+          (item) =>
+            Number(item.sticker?.id) === Number(sectionItem.sticker?.id)
+        ) || sectionItem
+      );
+    })
+  : collection
+      .filter(
+        (item) =>
+          normalizeText(item.sticker?.area) === normalizeText(area.area)
+      )
+      .sort(
+        (a, b) =>
+          Number(a.sticker?.stickerNumber || 0) -
+          Number(b.sticker?.stickerNumber || 0)
+      );
+
+const totalSlots = sectionStickers.length || area.totalStickers;
+
+
                     return (
                       <article className="album-area-card" key={normalizeText(area.area)}>
                         <div
@@ -205,10 +226,11 @@ if (!hasAlbumData) {
 
                         <div className="album-area-card__slots">
                           {Array.from({
-                            length: area.totalStickers/* Math.min(area.totalStickers, 12) */,
+                            length: totalSlots/* Math.min(area.totalStickers, 12) */,
                           }).map((_, index) => {
                             const ownedSticker = areaCollection[index];
                             const sticker = ownedSticker?.sticker;
+                            const missingSticker = sectionStickers[index]?.sticker;
 
                             return (
                               <article
@@ -251,7 +273,7 @@ if (!hasAlbumData) {
 
                                       <div className="album-sticker__info">
                                         <strong>Falta</strong>
-                                        <small>#{index + 1}</small>
+                                        <small>#{missingSticker?.stickerNumber || index + 1}</small>
                                       </div>
                                     </>
                                   )}

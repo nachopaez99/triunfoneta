@@ -3,6 +3,7 @@ import { getAreas } from "../services/areaService";
 import { getGameConfig } from "../services/configService";
 import { getUsers } from "../services/userService";
 /* import { getUsers } from "../services/userService"; */
+import { useAuth } from "./AuthContext";
 
 import {
   getAlbumProgress,
@@ -83,6 +84,7 @@ export function AlbumProvider({ children }) {
   const [isAlbumLoading, setIsAlbumLoading] = useState(false);
   const [isOpeningPack, setIsOpeningPack] = useState(false);
   const [isConfigLoading, setIsConfigLoading] = useState(false);
+  const { user } = useAuth();
 
   const [lastOpenedPack, setLastOpenedPack] = useState(() =>
   safeParseJson(sessionStorage.getItem(LAST_PACK_CACHE_KEY), [])
@@ -230,18 +232,20 @@ duplicates: enrichCollectionWithUsers(
   }
 
   useEffect(() => {
-    const cachedAlbum = safeParseJson(sessionStorage.getItem(ALBUM_CACHE_KEY), null);
+  if (!user?.id) return;
 
-    if (cachedAlbum) {
-      setBackendAreas(cachedAlbum.backendAreas || []);
-      setAlbumProgress(cachedAlbum.albumProgress || []);
-      setCollection(cachedAlbum.collection || []);
-      setDuplicates(cachedAlbum.duplicates || []);
-    }
+  const cachedAlbum = safeParseJson(sessionStorage.getItem(ALBUM_CACHE_KEY), null);
 
-    refreshGameConfig();
-    refreshAlbumData();
-  }, []);
+  if (cachedAlbum) {
+    setBackendAreas(cachedAlbum.backendAreas || []);
+    setAlbumProgress(cachedAlbum.albumProgress || []);
+    setCollection(cachedAlbum.collection || []);
+    setDuplicates(cachedAlbum.duplicates || []);
+  }
+
+  refreshGameConfig();
+  refreshAlbumData();
+}, [user?.id]);
 
   async function pasteSticker() {
     await refreshAlbumData();

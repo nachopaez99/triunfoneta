@@ -57,6 +57,12 @@ if (isAlbumLoading && totalStickers === 0) {
     </section>
   );
 }
+/* console.log("HOME", {
+  isAlbumLoading,
+  progress,
+  pastedStickers,
+  totalStickers,
+}); */
   return (
     <section className="dashboard-page">
       <header className="dashboard-hero">
@@ -93,7 +99,12 @@ if (isAlbumLoading && totalStickers === 0) {
 
         <article className="dashboard-card">
           <span>Repetidas</span>
-          <strong>{repeatedStickers.length}</strong>
+          <strong>
+  {repeatedStickers.reduce(
+    (total, sticker) => total + (sticker.quantity - 1),
+    0
+  )}
+</strong>
           <p>Disponibles para intercambio</p>
         </article>
       </div>

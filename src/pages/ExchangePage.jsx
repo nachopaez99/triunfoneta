@@ -348,6 +348,9 @@ export function ExchangePage() {
             <div className="my-repeated-grid">
               {receivedTrades.map((trade) => (
                 <article className="repeated-card" key={trade.id}>
+                  <span>Figurita # {trade.offeredUserSticker.stickerId}</span>
+
+
                   <span>
                     De:{" "}
                     {trade.fromUser?.fullName ||
@@ -357,7 +360,7 @@ export function ExchangePage() {
                   </span>
 
                   <strong>
-                    Te ofrecen: {getStickerName(trade.offeredUserSticker)}
+                    Te ofrecen: {getStickerName(trade.offeredUserSticker)} · <p className={getRequestedStickerStatus(trade.offeredUserSticker) == "Ya la tenés"? "repeated-card-request-ylt" : "repeated-card-request-nlt"}> {getRequestedStickerStatus(trade.offeredUserSticker)}</p>
                   </strong>
 
                   <small>

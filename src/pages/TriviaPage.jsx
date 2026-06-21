@@ -8,7 +8,7 @@ import { useAuth } from "../context/AuthContext";
 import { getMyTriviaHistory } from "../services/triviaService";
 
 const TRIVIA_CACHE_KEY = "currentTrivia";
-const DAILY_TRIVIA_LIMIT = 15;
+const DAILY_TRIVIA_LIMIT = 20;
 
 function isToday(dateString) {
   const date = new Date(dateString);

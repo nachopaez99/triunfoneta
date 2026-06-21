@@ -58,6 +58,7 @@ export function ProdePage() {
   const [picks, setPicks] = useState(cachedProde?.picks || []);
   const [loading, setLoading] = useState(!cachedProde);
   const [savingMatchId, setSavingMatchId] = useState(null);
+  const isSavingAnyPrediction = savingMatchId !== null;
   const [error, setError] = useState("");
 
   async function loadProde({ showLoading = true } = {}) {
@@ -179,14 +180,15 @@ console.log("picksResponse", picksResponse);
       <div className="prode-grid">
         {matches.map((match) => (
           <ProdeMatchCard
-            key={match.id}
-            match={{
-              ...match,
-              isSaving: savingMatchId === match.id,
-            }}
-            onPredictionChange={handlePredictionChange}
-            onSavePrediction={handleSavePrediction}
-          />
+  key={match.id}
+  match={{
+    ...match,
+    isSaving: savingMatchId === match.id,
+    isDisabled: isSavingAnyPrediction,
+  }}
+  onPredictionChange={handlePredictionChange}
+  onSavePrediction={handleSavePrediction}
+/>
         ))}
       </div>
     </section>

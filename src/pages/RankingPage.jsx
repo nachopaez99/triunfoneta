@@ -130,8 +130,10 @@ export function RankingPage() {
           <p>{error}</p>
         </section>
       )}
-
-      <section className="ranking-summary">
+{/* --------------------------- Agregar cuando no haya limit en ranking  ---------------------------------------------------------------------- */}
+     
+     
+      {/* <section className="ranking-summary">
         <article className={`ranking-summary-card ranking-summary-card--${myRankVariant}`}>
           <span className="ranking-summary-card__label">Tu puesto</span>
           <strong className="ranking-summary-card__value">
@@ -145,7 +147,7 @@ export function RankingPage() {
             {myRanking?.totalPoints ?? 0}
           </strong>
         </article>
-      </section>
+      </section> */}
 
       <section className="ranking-panel">
         <div className="ranking-panel__header">

@@ -1,5 +1,5 @@
 import { apiRequest } from "./apiClient";
 
 export function getProdeRanking() {
-  return apiRequest("/rankings/prode?limit=20");
+  return apiRequest("/rankings/prode?limit=600");
 }

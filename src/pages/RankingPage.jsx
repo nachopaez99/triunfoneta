@@ -151,7 +151,7 @@ export function RankingPage() {
         <div className="ranking-panel__header">
           <div>
             <span className="ranking-panel__eyebrow">Tabla general</span>
-            <h3>Top 15</h3>
+            <h3>Top 20</h3>
           </div>
 {/* 
           <span className="ranking-panel__counter">

@@ -11,6 +11,7 @@ import { ExchangePage } from "../pages/ExchangePage";
 import { ProfilePage } from "../pages/ProfilePage";
 import { InfoPage } from "../pages/InfoPage";
 import { AdminBannersPage } from "../pages/AdminBannersPage";
+import { RankingPage } from "../pages/RankingPage";
 
 
 function ProtectedRoute({ children }) {
@@ -85,6 +86,7 @@ export function AppRouter() {
         <Route path="album" element={<AlbumPage />} />
         <Route path="trivias" element={<TriviaPage />} />
         <Route path="prode" element={<ProdePage />} />
+        <Route path="ranking-prode" element={<RankingPage />} />
         <Route path="intercambio" element={<ExchangePage />} />
         <Route path="perfil" element={<ProfilePage />} />
         <Route path="info" element={<InfoPage/>} />

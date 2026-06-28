@@ -7,6 +7,7 @@ const menuItems = [
   { path: "/album", label: "Álbum📕" },
   { path: "/trivias", label: "Trivias🧠" },
   { path: "/prode", label: "Prode🏆" },
+  { path: "/ranking-prode", label: "Ranking Prode📊" },
   { path: "/intercambio", label: "Intercambio🤝" },
   { path: "/perfil", label: "Perfil👤" },
   { path: "/info", label: "¿Cómo juego? ❓" },

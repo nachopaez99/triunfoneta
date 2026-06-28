@@ -116,8 +116,44 @@ export function ExchangePage() {
     }
   }
 
+ function getTradeSenderId(trade) {
+  return (
+    trade?.fromUser?.id ||
+    trade?.createdByUser?.id ||
+    trade?.user?.id ||
+    trade?.fromUserId ||
+    trade?.createdByUserId ||
+    trade?.userId
+  );
+}
+
+async function isOfferedStickerStillAvailable(trade) {
+  const senderId = getTradeSenderId(trade);
+
+  if (!senderId || !trade?.offeredUserSticker) {
+    return true;
+  }
+
+  const response = await getUserCollection(senderId, {
+    duplicatesOnly: true,
+    page: 1,
+    limit: 1000,
+  });
+
+  const senderDuplicates = response.data || response || [];
+
+  return senderDuplicates.some((item) => {
+    return (
+      Number(item.id) === Number(trade.offeredUserSticker.id) ||
+      Number(item?.sticker?.id) === Number(trade.offeredUserSticker?.sticker?.id)
+    );
+  });
+} 
+
  async function handleAcceptTrade(tradeId) {
   const trade = receivedTrades.find((item) => item.id === tradeId);
+
+  if (!trade) return;
 
   const requestedStickerId = trade?.requestedUserSticker?.sticker?.id;
 
@@ -136,6 +172,17 @@ export function ExchangePage() {
   setTradeActionLoadingId(tradeId);
 
   try {
+    const offeredStillAvailable = await isOfferedStickerStillAvailable(trade);
+
+    if (!offeredStillAvailable) {
+      alert(
+        "La figurita que te ofrecieron ya no está disponible. El intercambio no pudo completarse."
+      );
+
+      await loadTrades();
+      return;
+    }
+
     await acceptTrade(tradeId);
     await refreshAlbumData();
     await loadTrades();
@@ -143,7 +190,13 @@ export function ExchangePage() {
     setStatusMessage("Intercambio aceptado correctamente.");
   } catch (error) {
     console.error("Error aceptando intercambio:", error);
-    setStatusMessage(error.message || "No se pudo aceptar el intercambio.");
+
+    alert(
+      error.message ||
+        "No se pudo aceptar el intercambio. Es posible que alguna figurita ya no esté disponible."
+    );
+
+    await loadTrades();
   } finally {
     setTradeActionLoadingId(null);
   }

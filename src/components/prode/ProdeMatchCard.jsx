@@ -47,7 +47,9 @@ export function ProdeMatchCard({
 
       <div className="prode-card__meta">
         <span>{match.stage}</span>
-        {match.group && <strong> - Grupo {match.group}</strong>}
+        {match.stage?.toLowerCase() === "fase de grupos" && match.group && (
+  <strong> - Grupo {match.group}</strong>
+)}
       </div>
 
       <div className="prode-card__teams">

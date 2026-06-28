@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { ProdeMatchCard } from "../components/prode/ProdeMatchCard";
 import {
@@ -9,12 +9,81 @@ import {
 
 const PRODE_CACHE_KEY = "prodeData";
 
+const STAGE_LABELS = {
+  group: "Fase de grupos",
+  groups: "Fase de grupos",
+  group_stage: "Fase de grupos",
+  "fase de grupos": "Fase de grupos",
+  round_of_32: "Dieciseisavos",
+  "dieciseisavos": "Dieciseisavos",
+  round_of_16: "Octavos de final",
+  "octavos": "Octavos de final",
+  quarter_finals: "Cuartos de final",
+  "cuartos": "Cuartos de final",
+  semi_finals: "Semifinales",
+  "semifinales": "Semifinales",
+  third_place: "Tercer puesto",
+  final: "Final",
+};
+
+const STAGE_ORDER = [
+  "Fase de grupos",
+  "Dieciseisavos",
+  "Octavos de final",
+  "Cuartos de final",
+  "Semifinales",
+  "Tercer puesto",
+  "Final",
+];
+
 function safeParseJson(value, fallback) {
   try {
     return value ? JSON.parse(value) : fallback;
   } catch {
     return fallback;
   }
+}
+
+function normalizeStageLabel(stage) {
+  if (!stage) return "Sin etapa";
+
+  const normalizedStage = String(stage).trim();
+  const key = normalizedStage.toLowerCase().replaceAll("-", "_");
+
+  return STAGE_LABELS[key] || normalizedStage;
+}
+
+function groupMatchesByStage(matches) {
+  const groups = matches.reduce((accumulator, match) => {
+    const stageLabel = normalizeStageLabel(match.stage);
+
+    if (!accumulator[stageLabel]) {
+      accumulator[stageLabel] = [];
+    }
+
+    accumulator[stageLabel].push(match);
+
+    return accumulator;
+  }, {});
+
+  return Object.entries(groups)
+    .map(([stage, stageMatches]) => ({
+      stage,
+      matches: stageMatches,
+    }))
+    .sort((a, b) => {
+      const aIndex = STAGE_ORDER.indexOf(a.stage);
+      const bIndex = STAGE_ORDER.indexOf(b.stage);
+
+      if (aIndex === -1 && bIndex === -1) {
+        return a.stage.localeCompare(b.stage);
+      }
+
+      if (aIndex === -1) return 1;
+      if (bIndex === -1) return -1;
+
+      return aIndex - bIndex;
+    });
 }
 
 function normalizeProdeData(matchesResponse, picksResponse) {
@@ -29,37 +98,56 @@ function normalizeProdeData(matchesResponse, picksResponse) {
       );
 
       return {
-  ...match,
-  prediction: {
-    homeScore:
-      existingPick?.predictedHome ??
-      existingPick?.homeScore ??
-      "",
-    awayScore:
-      existingPick?.predictedAway ??
-      existingPick?.awayScore ??
-      "",
-  },
-  hasPick: Boolean(existingPick),
-  pointsEarned:
-    existingPick?.pointsEarned ??
-    existingPick?.points ??
-    match.pointsEarned ??
-    0,
-};
+        ...match,
+        prediction: {
+          homeScore:
+            existingPick?.predictedHome ??
+            existingPick?.homeScore ??
+            "",
+          awayScore:
+            existingPick?.predictedAway ??
+            existingPick?.awayScore ??
+            "",
+        },
+        hasPick: Boolean(existingPick),
+        pointsEarned:
+          existingPick?.pointsEarned ??
+          existingPick?.points ??
+          match.pointsEarned ??
+          0,
+      };
     }),
   };
 }
 
 export function ProdePage() {
-  const cachedProde = safeParseJson(sessionStorage.getItem(PRODE_CACHE_KEY), null);
+  const cachedProde = safeParseJson(
+    sessionStorage.getItem(PRODE_CACHE_KEY),
+    null
+  );
 
   const [matches, setMatches] = useState(cachedProde?.matches || []);
   const [picks, setPicks] = useState(cachedProde?.picks || []);
   const [loading, setLoading] = useState(!cachedProde);
   const [savingMatchId, setSavingMatchId] = useState(null);
-  const isSavingAnyPrediction = savingMatchId !== null;
   const [error, setError] = useState("");
+
+  const isSavingAnyPrediction = savingMatchId !== null;
+
+  const groupedMatches = useMemo(
+    () => groupMatchesByStage(matches),
+    [matches]
+  );
+
+  const activeStageIndex = useMemo(() => {
+  for (let index = groupedMatches.length - 1; index >= 0; index -= 1) {
+    if (groupedMatches[index].matches.length > 0) {
+      return index;
+    }
+  }
+
+  return -1;
+}, [groupedMatches]);
 
   async function loadProde({ showLoading = true } = {}) {
     if (showLoading) {
@@ -73,9 +161,6 @@ export function ProdePage() {
         getProdeMatches(),
         getMyProdePicks(),
       ]);
-
-      console.log("matchesResponse", matchesResponse);
-console.log("picksResponse", picksResponse);
 
       const nextProdeData = normalizeProdeData(matchesResponse, picksResponse);
 
@@ -177,18 +262,33 @@ console.log("picksResponse", picksResponse);
         </div>
       </header>
 
-      <div className="prode-grid">
-        {matches.map((match) => (
-          <ProdeMatchCard
-  key={match.id}
-  match={{
-    ...match,
-    isSaving: savingMatchId === match.id,
-    isDisabled: isSavingAnyPrediction,
-  }}
-  onPredictionChange={handlePredictionChange}
-  onSavePrediction={handleSavePrediction}
-/>
+      <div className="prode-stage-list">
+        {groupedMatches.map((group, index) => (
+          <details
+            className="prode-stage"
+            key={group.stage}
+            open={index === activeStageIndex}
+          >
+            <summary className="prode-stage__summary">
+              <span>{group.stage}</span>
+              <strong>{group.matches.length} partidos</strong>
+            </summary>
+
+            <div className="prode-grid">
+              {group.matches.map((match) => (
+                <ProdeMatchCard
+                  key={match.id}
+                  match={{
+                    ...match,
+                    isSaving: savingMatchId === match.id,
+                    isDisabled: isSavingAnyPrediction,
+                  }}
+                  onPredictionChange={handlePredictionChange}
+                  onSavePrediction={handleSavePrediction}
+                />
+              ))}
+            </div>
+          </details>
         ))}
       </div>
     </section>

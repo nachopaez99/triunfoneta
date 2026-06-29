@@ -27,7 +27,7 @@ const isLegend =
         <img src={imageUrl} alt={displayName} />
       </div>
 
-      <h3 className={displayName.length > 23? "opened-sticker__name-" : "opened-sticker__name-max" }>{displayName}</h3>
+      <h3 className={displayName.length > 20? "opened-sticker__name-" : "opened-sticker__name-max" }>{displayName}</h3>
 
       {isLegend && <div className="sticker-legend">Legendaria</div>}
 

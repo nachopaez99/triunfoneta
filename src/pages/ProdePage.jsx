@@ -14,12 +14,19 @@ const STAGE_LABELS = {
   groups: "Fase de grupos",
   group_stage: "Fase de grupos",
   "fase de grupos": "Fase de grupos",
-  round_of_32: "Dieciseisavos",
-  "dieciseisavos": "Dieciseisavos",
+
+  round_of_32: "Dieciseisavos de final",
+  "dieciseisavos": "Dieciseisavos de final",
+  "dieciseisavos de final": "Dieciseisavos de final",
+
   round_of_16: "Octavos de final",
   "octavos": "Octavos de final",
+  "octavos de final": "Octavos de final",
+
   quarter_finals: "Cuartos de final",
   "cuartos": "Cuartos de final",
+  "cuartos de final": "Cuartos de final",
+
   semi_finals: "Semifinales",
   "semifinales": "Semifinales",
   third_place: "Tercer puesto",
@@ -28,7 +35,7 @@ const STAGE_LABELS = {
 
 const STAGE_ORDER = [
   "Fase de grupos",
-  "Dieciseisavos",
+  "Dieciseisavos de final",
   "Octavos de final",
   "Cuartos de final",
   "Semifinales",

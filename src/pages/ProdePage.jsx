@@ -28,7 +28,7 @@ const STAGE_LABELS = {
   "cuartos de final": "Cuartos de final",
 
   semi_finals: "Semifinales",
-  "semifinales": "Semifinales",
+  "semifinales": "Semifinal",
   third_place: "Tercer puesto",
   final: "Final",
 };
@@ -38,7 +38,7 @@ const STAGE_ORDER = [
   "Dieciseisavos de final",
   "Octavos de final",
   "Cuartos de final",
-  "Semifinales",
+  "Semifinal",
   "Tercer puesto",
   "Final",
 ];

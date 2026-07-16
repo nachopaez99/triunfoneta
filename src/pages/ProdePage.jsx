@@ -27,7 +27,7 @@ const STAGE_LABELS = {
   "cuartos": "Cuartos de final",
   "cuartos de final": "Cuartos de final",
 
-  semi_finals: "Semifinales",
+  semi_finals: "Semifinal",
   "semifinales": "Semifinal",
   third_place: "Tercer puesto",
   final: "Final",
